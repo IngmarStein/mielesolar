@@ -2,5 +2,15 @@ github.com/goburrow/modbus v0.1.0 h1:DejRZY73nEM6+bt5JSP6IsFolJ9dVcqxsYbpLbeW/ro
 github.com/goburrow/modbus v0.1.0/go.mod h1:Kx552D5rLIS8E7TyUwQ/UdHEqvX5T8tyiGBTlzMcZBg=
 github.com/goburrow/serial v0.1.0 h1:v2T1SQa/dlUqQiYIT8+Cu7YolfqAi3K96UmhwYyuSrA=
 github.com/goburrow/serial v0.1.0/go.mod h1:sAiqG0nRVswsm1C97xsttiYCzSLBmUZ/VSlVLZJ8haA=
+github.com/google/go-querystring v1.0.0 h1:Xkwi/a1rcvNg1PPYe5vI8GbeBY/jrVuDX5ASuANWTrk=
+github.com/google/go-querystring v1.0.0/go.mod h1:odCYkC5MyYFN7vkCjXpyrEuKhc/BUO6wN/zVPAxq5ck=
+github.com/ingmarstein/miele-go v0.0.0-20200705154631-d06876bc24bf h1:t0pmA//sESJn6QqBkqV3ey0vI1t5M9sV2R7IpoZZbBY=
+github.com/ingmarstein/miele-go v0.0.0-20200705154631-d06876bc24bf/go.mod h1:AOT9oa7eu2ofTHose2e3WAoA8Tsaz0/Y1YKK0bW98fk=
+github.com/ingmarstein/miele-go v0.0.0-20200705195156-bf5cfbef6c7f h1:+KaWwv8dGBSteNBVZTPBA+PYfYGPLLEUHZjQGwZYDHk=
+github.com/ingmarstein/miele-go v0.0.0-20200705195156-bf5cfbef6c7f/go.mod h1:AOT9oa7eu2ofTHose2e3WAoA8Tsaz0/Y1YKK0bW98fk=
+github.com/ingmarstein/miele-go v0.0.0-20200705201401-cc31b6cc7925 h1:q5PUO8z+ptUboWjiqiBkLsMRwm30T8hFQJ4Y4Z5S9+E=
+github.com/ingmarstein/miele-go v0.0.0-20200705201401-cc31b6cc7925/go.mod h1:AOT9oa7eu2ofTHose2e3WAoA8Tsaz0/Y1YKK0bW98fk=
+github.com/ingmarstein/miele-go v0.0.0-20200705204330-b7aa5888bc6b h1:4bjv1NnmXSRh5VgiDynpjblOrCwe3Mw1LJl+pKsAhDo=
+github.com/ingmarstein/miele-go v0.0.0-20200705204330-b7aa5888bc6b/go.mod h1:AOT9oa7eu2ofTHose2e3WAoA8Tsaz0/Y1YKK0bW98fk=
 github.com/u-root/u-root v6.0.0+incompatible h1:YqPGmRoRyYmeg17KIWFRSyVq6LX5T6GSzawyA6wG6EE=
 github.com/u-root/u-root v6.0.0+incompatible/go.mod h1:RYkpo8pTHrNjW08opNd/U6p/RJE7K0D8fXO0d47+3YY=

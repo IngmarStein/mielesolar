@@ -1,12 +1,10 @@
 [
   {
     "id": "dishwasher",
-    "name": "dishwasher",
     "power": 200
   },
   {
     "id": "washing machine",
-    "name": "washing machine",
     "power": 500
   }
 ]

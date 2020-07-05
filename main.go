@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/goburrow/modbus"
+	"github.com/ingmarstein/miele-go/miele"
 )
 
 var inverterAddress = flag.String("inverter", defaultString("INVERTER_ADDRESS", "192.168.188.167"), "Inverter address or IP")
@@ -40,9 +41,15 @@ func defaultInt(key string, value int) int {
 
 type device struct {
 	ID      string  `json:"id"`
-	Name    string  `json:"name"`
 	Power   float64 `json:"power"`
 	waiting bool
+}
+
+type server struct {
+	mc      *miele.Client
+	mb      modbus.Client
+	handler *modbus.TCPClientHandler
+	devices []device
 }
 
 func main() {
@@ -55,30 +62,46 @@ func main() {
 		log.Fatalf("error parsing device config: %v", err)
 	}
 
-	handler := modbus.NewTCPClientHandler(fmt.Sprintf("%s:%d", *inverterAddress, *inverterPort))
-	handler.Timeout = 10 * time.Second
-	handler.SlaveId = 0x01
-	if err := handler.Connect(); err != nil {
+	srv := newServer(fmt.Sprintf("%s:%d", *inverterAddress, *inverterPort), devices)
+	srv.printSolarEdgeInfo()
+
+	defer srv.close()
+	srv.serve()
+}
+
+func newServer(modbusAddress string, devices []device) *server {
+	srv := server{
+		mc:      miele.NewClient(nil, ""),
+		handler: modbus.NewTCPClientHandler(modbusAddress),
+		devices: devices,
+	}
+
+	srv.handler.Timeout = 10 * time.Second
+	srv.handler.SlaveId = 0x01
+	srv.mb = modbus.NewClient(srv.handler)
+
+	if err := srv.handler.Connect(); err != nil {
 		log.Fatalf("error connecting to inverter: %s", err.Error())
 	}
-	defer handler.Close()
-	client := modbus.NewClient(handler)
 
-	printSolarEdgeInfo(client)
+	return &srv
+}
 
+func (s *server) close() {
+	s.handler.Close()
+}
+
+func (s *server) serve() {
 	ticker := time.NewTicker(time.Duration(*pollInterval) * time.Second)
-	done := make(chan bool)
 
 	for {
 		select {
-		case <-done:
-			return
 		case <-ticker.C:
-			if err := refresh(client, devices); err != nil {
+			if err := s.refresh(); err != nil {
 				log.Printf("attempting to reconnect")
-				_ = handler.Close()
+				_ = s.handler.Close()
 				time.Sleep(2 * time.Second)
-				err = handler.Connect()
+				err = s.handler.Connect()
 				if err != nil {
 					log.Printf("error reconnecting: %v\n", err)
 				}
@@ -87,46 +110,40 @@ func main() {
 	}
 }
 
-func printSolarEdgeInfo(client modbus.Client) error {
+func (s *server) printSolarEdgeInfo() {
 	// Collect and log common inverter data
-	inverterData, err := client.ReadHoldingRegisters(40000, 70)
+	inverterData, err := s.mb.ReadHoldingRegisters(40000, 70)
 	if err != nil {
-		log.Printf("error reading inverter registers: %s", err.Error())
-		return err
+		log.Fatalf("error reading inverter registers: %s", err.Error())
 	}
 
 	cm, err := solaredge.NewCommonModel(inverterData)
 	if err != nil {
-		log.Printf("error parsing inverter data: %s", err.Error())
-		return err
+		log.Fatalf("error parsing inverter data: %s", err.Error())
 	}
 
 	log.Printf("Inverter Model: %s", cm.C_Model)
 	log.Printf("Inverter Serial: %s", cm.C_SerialNumber)
 	log.Printf("Inverter Version: %s", cm.C_Version)
 
-	meterData, err := client.ReadHoldingRegisters(40121, 65)
+	meterData, err := s.mb.ReadHoldingRegisters(40121, 65)
 	if err != nil {
-		log.Printf("error reading meter registers: %s", err.Error())
-		return err
+		log.Fatalf("error reading meter registers: %s", err.Error())
 	}
 
 	cm2, err := solaredge.NewCommonMeter(meterData)
 	if err != nil {
-		log.Printf("error parsing meter registers: %s", err.Error())
-		return err
+		log.Fatalf("error parsing meter registers: %s", err.Error())
 	}
 	log.Printf("Meter Manufacturer: %s", cm2.C_Manufacturer)
 	log.Printf("Meter Model: %s", cm2.C_Model)
 	log.Printf("Meter Serial: %s", cm2.C_SerialNumber)
 	log.Printf("Meter Version: %s", cm2.C_Version)
 	log.Printf("Meter Option: %s", cm2.C_Option)
-
-	return nil
 }
 
-func currentPowerExport(client modbus.Client) (float64, error) {
-	inverterData, err := client.ReadHoldingRegisters(40069, 40)
+func (s *server) currentPowerExport() (float64, error) {
+	inverterData, err := s.mb.ReadHoldingRegisters(40069, 40)
 	if err != nil {
 		log.Printf("error reading inverter registers: %s", err.Error())
 		return 0, err
@@ -146,7 +163,7 @@ func currentPowerExport(client modbus.Client) (float64, error) {
 	inverterACPower := float64(inverter.AC_Power) * math.Pow(10.0, float64(inverter.AC_Power_SF))
 	log.Printf("Inverter AC Power: %f", inverterACPower)
 
-	meterData, err := client.ReadHoldingRegisters(40188, 105)
+	meterData, err := s.mb.ReadHoldingRegisters(40188, 105)
 	if err != nil {
 		log.Printf("error reading meter data: %s", err.Error())
 		return 0, err
@@ -163,47 +180,64 @@ func currentPowerExport(client modbus.Client) (float64, error) {
 	return meterACPower, nil
 }
 
-func refresh(client modbus.Client, devices []device) error {
+func (s *server) refresh() error {
 	log.Println("starting refresh")
 
-	waiting := updateDevices(devices)
+	waiting := s.updateDevices()
 	if !waiting {
 		return nil
 	}
 
-	available, err := currentPowerExport(client)
+	available, err := s.currentPowerExport()
 	if err != nil {
 		return err
 	}
 
-	consumePower(available, devices)
+	s.consumePower(available)
 
 	return nil
 }
 
 // updateDevices updates all Miele appliances and returns whether
 // one is waiting for SmartStart.
-func updateDevices(devices []device) bool {
-	//TODO
-	for _, device := range devices {
-		device.waiting = true
+func (s *server) updateDevices() bool {
+	var deviceWaiting bool
+	for _, device := range s.devices {
+		device.waiting = false
+		state, err := s.mc.GetDeviceState(device.ID, miele.GetDeviceStateRequest{})
+		if err != nil {
+			log.Printf("error getting device state for %s: %v", device.ID, err)
+			continue
+		}
+		if state.Status.ValueRaw == miele.DEVICE_STATUS_PROGRAMMED_WAITING_TO_START && state.RemoteEnable.SmartGrid {
+			deviceWaiting = true
+			device.waiting = true
+		}
 	}
 
-	return true
+	return deviceWaiting
 }
 
 // consumePower starts appliances in the given priority order to
 // consume the surplus power.
-func consumePower(available float64, devices []device) {
-	// https://github.com/demel42/IPSymconMieleAtHome
-	// https://www.symcon.de/forum/threads/34249-Miele-Home-XKM-3100W-Protokollanalyse/page22
-
-	for _, device := range devices {
-		if device.waiting && device.Power <= available {
-			// TODO: start device
-			available -= device.Power
-			log.Printf("starting %s, remaining power: %f", device.Name, available)
-			device.waiting = false
+//
+// See also:
+// https://github.com/demel42/IPSymconMieleAtHome
+// https://www.symcon.de/forum/threads/34249-Miele-Home-XKM-3100W-Protokollanalyse
+func (s *server) consumePower(available float64) {
+	for _, device := range s.devices {
+		if !device.waiting || device.Power > available {
+			continue
 		}
+		err := s.mc.DeviceAction(device.ID, miele.DeviceActionRequest{
+			ProcessAction: miele.ACTION_START,
+		})
+		if err != nil {
+			log.Printf("error starting device %s: %v", device.ID, err)
+			continue
+		}
+		available -= device.Power
+		log.Printf("starting device %s, remaining power: %f", device.ID, available)
+		device.waiting = false
 	}
 }
