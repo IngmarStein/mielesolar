@@ -1,0 +1,9 @@
+version: "2.4"
+services:
+  mielesolar:
+    image: ingmarstein/mielesolar:latest
+    volumes:
+      - type: bind
+        source: devices.json
+        target: /devices.json
+    restart: unless-stopped
