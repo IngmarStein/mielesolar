@@ -57,3 +57,10 @@ mielesolar -config devices.json -inverter $IP -port 502
 docker run --mount type=bind,source="$(pwd)"/devices.json,target=/devices.json ingmarstein/mielesolar -inverter $IP -port
 ```
 Alternatively, use the included `docker-compose.yml` file as a template if you prefer to use Docker Compose.
+
+### 5. Start your Miele appliance
+
+When starting your dishwasher, washing machine, tumbler, etc. use the "SmartStart" option which delays the start of a
+program until enough solar power is generated or until a specified time, whichever comes first. `mielesolar` will find
+the devices in the `PROGRAMMED_WAITING_TO_START` state and start them in the configured order whenever your SolarEdge
+inverter signals sufficient power generation.
