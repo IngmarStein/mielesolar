@@ -53,6 +53,8 @@ type server struct {
 }
 
 func main() {
+	flag.Parse()
+
 	configData, err := ioutil.ReadFile(*configFile)
 	if err != nil {
 		log.Fatalf("error reading %s: %v", *configFile, err)
