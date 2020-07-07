@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -8,18 +9,24 @@ import (
 	"log"
 	"math"
 	"mielesolar/modbus"
+	"net/http"
 	"os"
 	"strconv"
 	"time"
 
 	"github.com/goburrow/modbus"
 	"github.com/ingmarstein/miele-go/miele"
+	"golang.org/x/oauth2"
 )
 
 var inverterAddress = flag.String("inverter", defaultString("INVERTER_ADDRESS", "192.168.188.167"), "Inverter address or IP")
 var inverterPort = flag.Int("port", defaultInt("INVERTER_PORT", 502), "MODBUS over TCP port")
 var pollInterval = flag.Int("interval", 5, "Polling interval in seconds")
 var configFile = flag.String("config", "devices.json", "Device config file")
+var clientID = flag.String("client-id", os.Getenv("MIELE_CLIENT_ID"), "Miele 3rd Party API client ID")
+var clientSecret = flag.String("client-secret", os.Getenv("MIELE_CLIENT_SECRET"), "Miele 3rd Party API client secret")
+var username = flag.String("user", os.Getenv("MIELE_USERNAME"), "Miele@Home user name")
+var password = flag.String("password", os.Getenv("MIELE_PASSWORD"), "Miele@Home password")
 
 func defaultString(key, value string) string {
 	if v := os.Getenv(key); v != "" {
@@ -55,6 +62,11 @@ type server struct {
 func main() {
 	flag.Parse()
 
+	if *clientID == "" || *clientSecret == "" || *username == "" || *password == "" {
+		flag.Usage()
+		os.Exit(1)
+	}
+
 	configData, err := ioutil.ReadFile(*configFile)
 	if err != nil {
 		log.Fatalf("error reading %s: %v", *configFile, err)
@@ -64,16 +76,31 @@ func main() {
 		log.Fatalf("error parsing device config: %v", err)
 	}
 
-	srv := newServer(fmt.Sprintf("%s:%d", *inverterAddress, *inverterPort), devices)
+	conf := &oauth2.Config{
+		ClientID:     *clientID,
+		ClientSecret: *clientSecret,
+		Endpoint:     miele.Endpoint,
+	}
+
+	ctx := context.Background()
+	token, err := conf.PasswordCredentialsToken(ctx, *username, *password)
+	if err != nil {
+		log.Fatalf("error retrieving Miele token: %v", err)
+	}
+
+	oauthClient := conf.Client(ctx, token)
+
+	srv := newServer(fmt.Sprintf("%s:%d", *inverterAddress, *inverterPort), devices, oauthClient)
 	srv.printSolarEdgeInfo()
 
 	defer srv.close()
 	srv.serve()
 }
 
-func newServer(modbusAddress string, devices []device) *server {
+func newServer(modbusAddress string, devices []device, httpClient *http.Client) *server {
+
 	srv := server{
-		mc:      miele.NewClient(nil, ""),
+		mc:      miele.NewClient(httpClient),
 		handler: modbus.NewTCPClientHandler(modbusAddress),
 		devices: devices,
 	}

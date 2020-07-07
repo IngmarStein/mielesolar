@@ -6,4 +6,6 @@ services:
       - type: bind
         source: devices.json
         target: /devices.json
+    environment:
+      ""
     restart: unless-stopped
