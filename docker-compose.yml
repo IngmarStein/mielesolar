@@ -2,6 +2,7 @@ version: "2.4"
 services:
   mielesolar:
     image: ingmarstein/mielesolar:latest
+    command: ["-auto", "500", "vg", "de-CH"]
     volumes:
       - type: bind
         source: ./devices.json
