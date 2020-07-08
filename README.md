@@ -39,7 +39,9 @@ A device's identifier is also called "serial number" or "fabnumber" and can be f
 ### 3. Get Miele API credentials
 
 The tool uses the [Miele 3rd Party API](https://developer.miele.com/) to communicate with your appliances and requires
-API credentials to do so. This usually means writing an email to developer@miele.com.
+API credentials to do so. This usually means writing an email to developer@miele.com. Pass the obtained credentials and
+your Miele@Home account through `MIELE_USERNAME`, `MIELE_PASSWORD`, `MIELE_CLIENT_ID`, and `MIELE_CLIENT_SECRET`
+environment variables to `mielesolar`.
 
 ### 4. Run `mielesolar`
 
@@ -49,12 +51,12 @@ common NAS hardware:
 #### Native
 ```
 go get github.com/IngmarStein/mielesolar
-mielesolar -config devices.json -inverter $IP -port 502
+MIELE_USERNAME=xxx MIELE_PASSWORD=xxx MIELE_CLIENT_ID=xxx MIELE_CLIENT_SECRET=xxx mielesolar -config devices.json -inverter $IP -port 502
 ```
 
 #### In a container
 ```
-docker run --mount type=bind,source="$(pwd)"/devices.json,target=/devices.json ingmarstein/mielesolar -inverter $IP -port
+docker run --mount type=bind,source="$(pwd)"/devices.json,target=/devices.json --env MIELE_USERNAME=xxx --env MIELE_PASSWORD=xxx --env MIELE_CLIENT_ID=xxx --env MIELE_CLIENT_SECRET=xxx ingmarstein/mielesolar -inverter $IP -port
 ```
 Alternatively, use the included `docker-compose.yml` file as a template if you prefer to use Docker Compose.
 

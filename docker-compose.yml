@@ -4,8 +4,13 @@ services:
     image: ingmarstein/mielesolar:latest
     volumes:
       - type: bind
-        source: devices.json
+        source: ./devices.json
         target: /devices.json
     environment:
-      ""
+      INVERTER_ADDRESS: ""
+      INVERTER_PORT: 502
+      MIELE_USERNAME: ""
+      MIELE_PASSWORD: ""
+      MIELE_CLIENT_ID: ""
+      MIELE_CLIENT_SECRET: ""
     restart: unless-stopped
