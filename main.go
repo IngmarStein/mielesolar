@@ -10,8 +10,10 @@ import (
 	"math"
 	"mielesolar/modbus"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/goburrow/modbus"
@@ -27,6 +29,7 @@ var clientID = flag.String("client-id", os.Getenv("MIELE_CLIENT_ID"), "Miele 3rd
 var clientSecret = flag.String("client-secret", os.Getenv("MIELE_CLIENT_SECRET"), "Miele 3rd Party API client secret")
 var username = flag.String("user", os.Getenv("MIELE_USERNAME"), "Miele@Home user name")
 var password = flag.String("password", os.Getenv("MIELE_PASSWORD"), "Miele@Home password")
+var vg = flag.String("vg", "de-CH", "country selector")
 
 func defaultString(key, value string) string {
 	if v := os.Getenv(key); v != "" {
@@ -59,6 +62,34 @@ type server struct {
 	devices []device
 }
 
+type mieleAuthTransport struct {
+	vg string
+}
+
+func (t *mieleAuthTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	body, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		return nil, err
+	}
+	defer req.Body.Close()
+
+	vals, err := url.ParseQuery(string(body))
+	if err != nil {
+		return nil, err
+	}
+
+	vals.Set("vg", t.vg)
+
+	buf := strings.NewReader(vals.Encode())
+	req.Body = ioutil.NopCloser(buf)
+	req.Header.Set("User-Agent", "mielesolar/0.0")
+	req.Header.Set("Content-Length", strconv.Itoa(buf.Len()))
+	req.ContentLength = int64(buf.Len())
+
+	// Call default roundtrip
+	return http.DefaultTransport.RoundTrip(req)
+}
+
 func main() {
 	flag.Parse()
 
@@ -82,13 +113,15 @@ func main() {
 		Endpoint:     miele.Endpoint,
 	}
 
-	ctx := context.Background()
+	hc := &http.Client{Transport: &mieleAuthTransport{vg: *vg}}
+	ctx := context.WithValue(context.Background(), oauth2.HTTPClient, hc)
+
 	token, err := conf.PasswordCredentialsToken(ctx, *username, *password)
 	if err != nil {
 		log.Fatalf("error retrieving Miele token: %v", err)
 	}
 
-	oauthClient := conf.Client(ctx, token)
+	oauthClient := conf.Client(context.Background(), token)
 
 	srv := newServer(fmt.Sprintf("%s:%d", *inverterAddress, *inverterPort), devices, oauthClient)
 	srv.printSolarEdgeInfo()

@@ -45,18 +45,18 @@ environment variables to `mielesolar`.
 
 ### 4. Run `mielesolar`
 
-There are several options to run the tool on a variety of machines, including Raspberry Pi or
-common NAS hardware:
+There are several options to run the tool on a variety of machines, including Raspberry Pi or common NAS hardware. Set
+the `vg` parameter to the locale where you registered your Miele@Home account, e.g. `de-DE` or `de-CH`.
 
 #### Native
 ```
 go get github.com/IngmarStein/mielesolar
-MIELE_USERNAME=xxx MIELE_PASSWORD=xxx MIELE_CLIENT_ID=xxx MIELE_CLIENT_SECRET=xxx mielesolar -config devices.json -inverter $IP -port 502
+MIELE_USERNAME=xxx MIELE_PASSWORD=xxx MIELE_CLIENT_ID=xxx MIELE_CLIENT_SECRET=xxx mielesolar -config devices.json -inverter $IP -port 502 -vg de-DE
 ```
 
 #### In a container
 ```
-docker run --mount type=bind,source="$(pwd)"/devices.json,target=/devices.json --env MIELE_USERNAME=xxx --env MIELE_PASSWORD=xxx --env MIELE_CLIENT_ID=xxx --env MIELE_CLIENT_SECRET=xxx ingmarstein/mielesolar -inverter $IP -port
+docker run --mount type=bind,source="$(pwd)"/devices.json,target=/devices.json --env MIELE_USERNAME=xxx --env MIELE_PASSWORD=xxx --env MIELE_CLIENT_ID=xxx --env MIELE_CLIENT_SECRET=xxx ingmarstein/mielesolar -inverter $IP -port 502 -vg de-DE
 ```
 Alternatively, use the included `docker-compose.yml` file as a template if you prefer to use Docker Compose.
 
