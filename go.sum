@@ -24,6 +24,8 @@ github.com/ingmarstein/miele-go v0.0.0-20200708184838-6c955203cfa8 h1:gUW83PFQB1
 github.com/ingmarstein/miele-go v0.0.0-20200708184838-6c955203cfa8/go.mod h1:GsTn7vROK5kNLAsiarvm6m3zpXf2B9CeOCyKhZNnF+A=
 github.com/ingmarstein/miele-go v0.0.0-20200708202914-084fc6b2a940 h1:wmsWaaelhWzeJKR2GYmBAwNdSQIxx+Dn0qMvFTVrhyE=
 github.com/ingmarstein/miele-go v0.0.0-20200708202914-084fc6b2a940/go.mod h1:GsTn7vROK5kNLAsiarvm6m3zpXf2B9CeOCyKhZNnF+A=
+github.com/ingmarstein/miele-go v0.0.0-20200708204540-30f4fa656160 h1:JErKI2ss9+wWjdt4kwk9HmIvdgfkOtOYabSaRZoMJ4E=
+github.com/ingmarstein/miele-go v0.0.0-20200708204540-30f4fa656160/go.mod h1:GsTn7vROK5kNLAsiarvm6m3zpXf2B9CeOCyKhZNnF+A=
 github.com/u-root/u-root v6.0.0+incompatible h1:YqPGmRoRyYmeg17KIWFRSyVq6LX5T6GSzawyA6wG6EE=
 github.com/u-root/u-root v6.0.0+incompatible/go.mod h1:RYkpo8pTHrNjW08opNd/U6p/RJE7K0D8fXO0d47+3YY=
 golang.org/x/net v0.0.0-20180724234803-3673e40ba225/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=
