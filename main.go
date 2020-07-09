@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 )
 
 var inverterAddress = flag.String("inverter", defaultString("INVERTER_ADDRESS", "192.168.188.167"), "Inverter address or IP")
@@ -49,7 +50,20 @@ type device struct {
 	waiting bool
 }
 
+// https://medium.com/@mhcbinder/using-local-time-in-a-golang-docker-container-built-from-scratch-2900af02fbaf
+func updateTimezone() {
+	if tz := os.Getenv("TZ"); tz != "" {
+		var err error
+		time.Local, err = time.LoadLocation(tz)
+		if err != nil {
+			log.Printf("error loading location '%s': %v\n", tz, err)
+		}
+	}
+}
+
 func main() {
+	updateTimezone()
+
 	flag.Parse()
 
 	if *clientID == "" || *clientSecret == "" || *username == "" || *password == "" {

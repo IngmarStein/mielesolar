@@ -2,11 +2,7 @@ version: "2.4"
 services:
   mielesolar:
     image: ingmarstein/mielesolar:latest
-    command: ["-auto", "500", "vg", "de-CH"]
-    volumes:
-      - type: bind
-        source: ./devices.json
-        target: /devices.json
+    command: ["-auto", "500", "-vg", "de-CH"]
     environment:
       INVERTER_ADDRESS: ""
       INVERTER_PORT: 502
@@ -14,4 +10,5 @@ services:
       MIELE_PASSWORD: ""
       MIELE_CLIENT_ID: ""
       MIELE_CLIENT_SECRET: ""
+      TZ: "Europe/Berlin"
     restart: unless-stopped
