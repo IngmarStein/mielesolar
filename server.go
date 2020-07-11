@@ -19,7 +19,7 @@ type server struct {
 	autoPower int
 }
 
-func newServer(modbusAddress string, autoPower int, devices []device, httpClient *http.Client) *server {
+func newServer(modbusAddress string, autoPower int, devices []device, verbose bool, httpClient *http.Client) *server {
 	srv := server{
 		mc:        miele.NewClient(httpClient),
 		handler:   modbus.NewTCPClientHandler(modbusAddress),
@@ -27,6 +27,7 @@ func newServer(modbusAddress string, autoPower int, devices []device, httpClient
 		autoPower: autoPower,
 	}
 
+	srv.mc.Verbose = verbose
 	srv.handler.Timeout = 10 * time.Second
 	srv.handler.SlaveId = 0x01
 	srv.mb = modbus.NewClient(srv.handler)
@@ -158,7 +159,7 @@ func (s *server) updateConfiguredDevices() bool {
 			log.Printf("error getting device state for %s: %v", device.ID, err)
 			continue
 		}
-		if state.Status.ValueRaw == miele.DEVICE_STATUS_PROGRAMMED_WAITING_TO_START && state.RemoteEnable.SmartGrid {
+		if state.Status.ValueRaw == miele.DEVICE_STATUS_PROGRAMMED_WAITING_TO_START && state.RemoteEnable.FullRemoteControl {
 			deviceWaiting = true
 			device.waiting = true
 		}
@@ -176,7 +177,15 @@ func (s *server) updateAutoDevices() bool {
 	s.devices = []device{}
 	var deviceWaiting bool
 	for _, r := range resp {
-		if r.State.Status.ValueRaw != miele.DEVICE_STATUS_PROGRAMMED_WAITING_TO_START || !r.State.RemoteEnable.SmartGrid {
+		// https://www.miele.com/developer/swagger-ui/put_additional_info.html
+		if r.Ident.Typ.ValueRaw != miele.DEVICE_TYPE_WASHING_MACHINE &&
+			r.Ident.Typ.ValueRaw != miele.DEVICE_TYPE_TUMBLE_DRYER &&
+			r.Ident.Typ.ValueRaw != miele.DEVICE_TYPE_DISHWASHER &&
+			r.Ident.Typ.ValueRaw != miele.DEVICE_TYPE_WASHER_DRYER {
+			continue
+		}
+
+		if r.State.Status.ValueRaw != miele.DEVICE_STATUS_PROGRAMMED_WAITING_TO_START || !r.State.RemoteEnable.FullRemoteControl {
 			continue
 		}
 

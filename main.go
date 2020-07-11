@@ -25,6 +25,7 @@ var username = flag.String("user", os.Getenv("MIELE_USERNAME"), "Miele@Home user
 var password = flag.String("password", os.Getenv("MIELE_PASSWORD"), "Miele@Home password")
 var vg = flag.String("vg", "de-CH", "country selector")
 var autoPower = flag.Int("auto", 0, "automatically start waiting devices if a minimum amount of power is available")
+var verbose = flag.Bool("verbose", false, "verbose mode")
 
 func defaultString(key, value string) string {
 	if v := os.Getenv(key); v != "" {
@@ -98,7 +99,7 @@ func main() {
 
 	oauthClient := conf.Client(context.Background(), token)
 
-	srv := newServer(fmt.Sprintf("%s:%d", *inverterAddress, *inverterPort), *autoPower, devices, oauthClient)
+	srv := newServer(fmt.Sprintf("%s:%d", *inverterAddress, *inverterPort), *autoPower, devices, *verbose, oauthClient)
 	srv.printSolarEdgeInfo()
 
 	defer srv.close()
