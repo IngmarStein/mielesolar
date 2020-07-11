@@ -212,6 +212,7 @@ func (s *server) consumePower(available float64) {
 		if !device.waiting || device.Power > available {
 			continue
 		}
+		log.Printf("starting device %s", device.ID)
 		err := s.mc.DeviceAction(device.ID, miele.DeviceActionRequest{
 			ProcessAction: miele.ACTION_START,
 		})
@@ -220,7 +221,7 @@ func (s *server) consumePower(available float64) {
 			continue
 		}
 		available -= device.Power
-		log.Printf("starting device %s, remaining power: %f", device.ID, available)
+		log.Printf("started device %s, remaining power: %f", device.ID, available)
 		device.waiting = false
 	}
 }
