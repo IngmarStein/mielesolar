@@ -17,6 +17,7 @@ type server struct {
 	handler   *modbus.TCPClientHandler
 	devices   []device
 	autoPower int
+	verbose   bool
 }
 
 func newServer(modbusAddress string, autoPower int, devices []device, verbose bool, httpClient *http.Client) *server {
@@ -25,6 +26,7 @@ func newServer(modbusAddress string, autoPower int, devices []device, verbose bo
 		handler:   modbus.NewTCPClientHandler(modbusAddress),
 		devices:   devices,
 		autoPower: autoPower,
+		verbose:   verbose,
 	}
 
 	srv.mc.Verbose = verbose
@@ -133,7 +135,9 @@ func (s *server) currentPowerExport() (float64, error) {
 }
 
 func (s *server) refresh() error {
-	log.Println("starting refresh")
+	if s.verbose {
+		log.Println("starting refresh")
+	}
 
 	waiting := s.updateDevices()
 	if !waiting {
