@@ -2,6 +2,21 @@
 
 Start Miele@Home appliances when your SolarEdge inverter produces surplus power.
 
+## Purpose
+
+Why should you want to use this point-to-point integration between your inverter and household devices when more
+flexible solutions like openHAB.org, FHEM, ioBroker.net, home-assistant.io, etc. exist?
+
+- Minimal resource footprint: the Docker image has a compressed size of ~4 MB, the memory usage is ~10 MB.
+- Easy to get started: it's not required to learn abstract concepts like things, connectors, bindings, channels, links,
+  etc. Just provide your inverter's IP address and Miele credentials and that's it.
+- No gateway (XGW3000) required to connect to your Miele devices: mielesolar uses the Miele API to talk to your
+  WiFi-enabled devices.
+- Realtime data: mielesolar does not use the restricted
+  [SolarEdge Monitoring API](https://www.solaredge.com/sites/default/files/se_monitoring_api.pdf) (only 300 requests per
+  day, data resolution of 15 minutes) or unsupported workarounds like scraping the monitoring platform, but talks to
+  your inverter directly over the local network. This is fast and provides realtime data.
+
 ## Usage
 
 ### 1. Enable MODBUS over TCP on your inverter
