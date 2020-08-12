@@ -42,7 +42,10 @@ func newServer(modbusAddress string, autoPower int, devices []device, verbose bo
 }
 
 func (s *server) close() {
-	s.handler.Close()
+	err := s.handler.Close()
+	if err != nil {
+		log.Printf("error closing handler: %v\n", err)
+	}
 }
 
 func (s *server) serve() {

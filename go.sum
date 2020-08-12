@@ -9,6 +9,8 @@ github.com/google/go-querystring v1.0.0 h1:Xkwi/a1rcvNg1PPYe5vI8GbeBY/jrVuDX5ASu
 github.com/google/go-querystring v1.0.0/go.mod h1:odCYkC5MyYFN7vkCjXpyrEuKhc/BUO6wN/zVPAxq5ck=
 github.com/ingmarstein/miele-go v0.0.0-20200711153455-8a5ba421fef5 h1:sliY6amPnnAyTItWqMT0CbPDwPcCnq6f/tsKakBnT1I=
 github.com/ingmarstein/miele-go v0.0.0-20200711153455-8a5ba421fef5/go.mod h1:GsTn7vROK5kNLAsiarvm6m3zpXf2B9CeOCyKhZNnF+A=
+github.com/ingmarstein/miele-go v0.0.0-20200812190248-dc813ef8e6fa h1:klzq1sXyHVHtiJIOyGMw5u+hTU6E9v2Ovst9xmrEdT8=
+github.com/ingmarstein/miele-go v0.0.0-20200812190248-dc813ef8e6fa/go.mod h1:ml4usXZW7060SO/YTbfULlgfRhDEoKkiNXJz4/h/z1A=
 github.com/u-root/u-root v6.0.0+incompatible h1:YqPGmRoRyYmeg17KIWFRSyVq6LX5T6GSzawyA6wG6EE=
 github.com/u-root/u-root v6.0.0+incompatible/go.mod h1:RYkpo8pTHrNjW08opNd/U6p/RJE7K0D8fXO0d47+3YY=
 golang.org/x/net v0.0.0-20180724234803-3673e40ba225/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=
