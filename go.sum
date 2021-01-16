@@ -105,8 +105,8 @@ github.com/googleapis/gax-go/v2 v2.0.5/go.mod h1:DWXyrwAJ9X0FpwwEdw+IPEYBICEFu5m
 github.com/hashicorp/golang-lru v0.5.0/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
 github.com/hashicorp/golang-lru v0.5.1/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
 github.com/ianlancetaylor/demangle v0.0.0-20181102032728-5e5cf60278f6/go.mod h1:aSSvb/t6k1mPoxDqO4vJh6VOCGPwU4O0C2/Eqndh1Sc=
-github.com/ingmarstein/miele-go v0.0.0-20201003194636-21fabfacc072 h1:fJWafZjWuVSF4ngv8fmvCwGMyyqUMNkvWOKH1ub6I6E=
-github.com/ingmarstein/miele-go v0.0.0-20201003194636-21fabfacc072/go.mod h1:ml4usXZW7060SO/YTbfULlgfRhDEoKkiNXJz4/h/z1A=
+github.com/ingmarstein/miele-go v0.0.0-20210116205024-f7a876e55b63 h1:y862CzF+us3bzNXAjhEUeXJMYeLMJsIrftqFghINxOU=
+github.com/ingmarstein/miele-go v0.0.0-20210116205024-f7a876e55b63/go.mod h1:235DNj/UOJ1SUunx8FYfa4hkH5s3aAGs/nnCA7lfDf4=
 github.com/jstemmer/go-junit-report v0.0.0-20190106144839-af01ea7f8024/go.mod h1:6v2b51hI/fHJwM22ozAgKL4VKDeJcHhJFhtBdhmNjmU=
 github.com/jstemmer/go-junit-report v0.9.1/go.mod h1:Brl9GWCQeLvo8nXZwPNNblvFj/XSXhF0NWZEnDohbsk=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
