@@ -4,7 +4,6 @@ import (
 	"log"
 	"math"
 	solaredge "mielesolar/modbus"
-	"net/http"
 	"time"
 
 	"github.com/goburrow/modbus"
@@ -20,9 +19,9 @@ type server struct {
 	verbose   bool
 }
 
-func newServer(modbusAddress string, autoPower int, devices []device, verbose bool, httpClient *http.Client) *server {
+func newServer(modbusAddress string, autoPower int, devices []device, verbose bool, mieleClient *miele.Client) *server {
 	srv := server{
-		mc:        miele.NewClient(httpClient),
+		mc:        mieleClient,
 		handler:   modbus.NewTCPClientHandler(modbusAddress),
 		devices:   devices,
 		autoPower: autoPower,

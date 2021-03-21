@@ -90,17 +90,9 @@ func main() {
 		Endpoint:     miele.Endpoint,
 	}
 
-	hc := &http.Client{Transport: &miele.AuthTransport{VG: *vg}}
-	ctx := context.WithValue(context.Background(), oauth2.HTTPClient, hc)
+	client := miele.NewClientWithAuth(*clientID, *clientSecret, *vg, *username, *password)
 
-	token, err := conf.PasswordCredentialsToken(ctx, *username, *password)
-	if err != nil {
-		log.Fatalf("error retrieving Miele token: %v", err)
-	}
-
-	oauthClient := conf.Client(context.Background(), token)
-
-	srv := newServer(fmt.Sprintf("%s:%d", *inverterAddress, *inverterPort), *autoPower, devices, *verbose, oauthClient)
+	srv := newServer(fmt.Sprintf("%s:%d", *inverterAddress, *inverterPort), *autoPower, devices, *verbose, client)
 	srv.printSolarEdgeInfo()
 
 	defer srv.close()
