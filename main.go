@@ -1,15 +1,12 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/ingmarstein/miele-go/miele"
-	"golang.org/x/oauth2"
 	"io/ioutil"
 	"log"
-	"net/http"
 	"os"
 	"strconv"
 	"time"
@@ -82,12 +79,6 @@ func main() {
 		if err := json.Unmarshal(configData, &devices); err != nil {
 			log.Fatalf("error parsing device config: %v", err)
 		}
-	}
-
-	conf := &oauth2.Config{
-		ClientID:     *clientID,
-		ClientSecret: *clientSecret,
-		Endpoint:     miele.Endpoint,
 	}
 
 	client := miele.NewClientWithAuth(*clientID, *clientSecret, *vg, *username, *password)
