@@ -7,14 +7,14 @@ import (
 )
 
 const (
-	I_STATUS_OFF = 1 // Off
-	I_STATUS_SLEEPING = 2 // Sleeping (auto-shutdown) – Night mode
-	I_STATUS_STARTING = 3 // Grid Monitoring/wake-up
-	I_STATUS_MPPT = 4 // Inverter is ON and producing power
-	I_STATUS_THROTTLED = 5 // Production (curtailed)
+	I_STATUS_OFF           = 1 // Off
+	I_STATUS_SLEEPING      = 2 // Sleeping (auto-shutdown) – Night mode
+	I_STATUS_STARTING      = 3 // Grid Monitoring/wake-up
+	I_STATUS_MPPT          = 4 // Inverter is ON and producing power
+	I_STATUS_THROTTLED     = 5 // Production (curtailed)
 	I_STATUS_SHUTTING_DOWN = 6 //  Shutting down
-	I_STATUS_FAULT = 7 // Fault
-	I_STATUS_STANDBY = 8 // Maintenance/setup
+	I_STATUS_FAULT         = 7 // Fault
+	I_STATUS_STANDBY       = 8 // Maintenance/setup
 )
 
 // CommonModel holds the SolarEdge SunSpec Implementation for Common parameters
@@ -42,12 +42,12 @@ type CommonMeter struct {
 	C_DeviceAddress  uint16
 }
 
-// NewCommonModel takes block of data read from the Modbus TCP connection and returns a new
+// NewCommonModel takes a block of data read from the Modbus TCP connection and returns a new
 // populated struct
 func NewCommonModel(data []byte) (CommonModel, error) {
 	buf := uio.NewBigEndianBuffer(data)
 	if len(data) != 140 {
-		return CommonModel{}, errors.New("Improper Data Size")
+		return CommonModel{}, errors.New("improper data size")
 	}
 
 	var cm CommonModel
@@ -75,7 +75,7 @@ func NewCommonModel(data []byte) (CommonModel, error) {
 func NewCommonMeter(data []byte) (CommonMeter, error) {
 	buf := uio.NewBigEndianBuffer(data)
 	if len(data) < 100 {
-		return CommonMeter{}, errors.New("Improper Data Size")
+		return CommonMeter{}, errors.New("improper data size")
 	}
 
 	var cm CommonMeter
@@ -106,42 +106,45 @@ func NewCommonMeter(data []byte) (CommonMeter, error) {
 // from the implementation technical note:
 // https://www.solaredge.com/sites/default/files/sunspec-implementation-technical-note.pdf
 type InverterModel struct {
-	SunSpec_DID     uint16
-	SunSpec_Length  uint16
-	AC_Current      uint16
-	AC_CurrentA     uint16
-	AC_CurrentB     uint16
-	AC_CurrentC     uint16
-	AC_Current_SF   int16
-	AC_VoltageAB    uint16
-	AC_VoltageBC    uint16
-	AC_VoltageCA    uint16
-	AC_VoltageAN    uint16
-	AC_VoltageBN    uint16
-	AC_VoltageCN    uint16
-	AC_Voltage_SF   int16
-	AC_Power        int16
-	AC_Power_SF     int16
-	AC_Frequency    uint16
-	AC_Frequency_SF int16
-	AC_VA           int16
-	AC_VA_SF        int16
-	AC_VAR          int16
-	AC_VAR_SF       int16
-	AC_PF           int16
-	AC_PF_SF        int16
-	AC_Energy_WH    int32
-	AC_Energy_WH_SF uint16
-	DC_Current      uint16
-	DC_Current_SF   int16
-	DC_Voltage      uint16
-	DC_Voltage_SF   int16
-	DC_Power        int16
-	DC_Power_SF     int16
-	Temp_Sink       int16
-	Temp_SF         int16
-	Status          uint16
-	Status_Vendor   uint16
+	SunSpec_DID      uint16
+	SunSpec_Length   uint16
+	AC_Current       uint16
+	AC_CurrentA      uint16
+	AC_CurrentB      uint16
+	AC_CurrentC      uint16
+	AC_Current_SF    int16
+	AC_VoltageAB     uint16
+	AC_VoltageBC     uint16
+	AC_VoltageCA     uint16
+	AC_VoltageAN     uint16
+	AC_VoltageBN     uint16
+	AC_VoltageCN     uint16
+	AC_Voltage_SF    int16
+	AC_Power         int16
+	AC_Power_SF      int16
+	AC_Frequency     uint16
+	AC_Frequency_SF  int16
+	AC_VA            int16
+	AC_VA_SF         int16
+	AC_VAR           int16
+	AC_VAR_SF        int16
+	AC_PF            int16
+	AC_PF_SF         int16
+	AC_Energy_WH     int32
+	AC_Energy_WH_SF  uint16
+	DC_Current       uint16
+	DC_Current_SF    int16
+	DC_Voltage       uint16
+	DC_Voltage_SF    int16
+	DC_Power         int16
+	DC_Power_SF      int16
+	Temp_Cabinet     int16
+	Temp_Sink        int16
+	Temp_Transformer int16
+	Temp_Other       int16
+	Temp_SF          int16
+	Status           uint16
+	Status_Vendor    uint16
 }
 
 type MeterModel struct {
@@ -194,7 +197,8 @@ type MeterModel struct {
 	M_Energy_W_SF     int16
 }
 
-// NewCommonModel takes block of data read from the Modbus TCP connection and returns a new populated struct
+// NewInverterModel takes a block of data read from the Modbus TCP connection and returns
+// a new populated struct.
 func NewInverterModel(data []byte) (InverterModel, error) {
 	buf := uio.NewBigEndianBuffer(data)
 	if len(data) != 80 {
@@ -202,46 +206,46 @@ func NewInverterModel(data []byte) (InverterModel, error) {
 	}
 
 	im := InverterModel{
-		SunSpec_DID:     buf.Read16(),
-		SunSpec_Length:  buf.Read16(),
-		AC_Current:      buf.Read16(),
-		AC_CurrentA:     buf.Read16(),
-		AC_CurrentB:     buf.Read16(),
-		AC_CurrentC:     buf.Read16(),
-		AC_Current_SF:   int16(buf.Read16()),
-		AC_VoltageAB:    buf.Read16(),
-		AC_VoltageBC:    buf.Read16(),
-		AC_VoltageCA:    buf.Read16(),
-		AC_VoltageAN:    buf.Read16(),
-		AC_VoltageBN:    buf.Read16(),
-		AC_VoltageCN:    buf.Read16(),
-		AC_Voltage_SF:   int16(buf.Read16()),
-		AC_Power:        int16(buf.Read16()),
-		AC_Power_SF:     int16(buf.Read16()),
-		AC_Frequency:    buf.Read16(),
-		AC_Frequency_SF: int16(buf.Read16()),
-		AC_VA:           int16(buf.Read16()),
-		AC_VA_SF:        int16(buf.Read16()),
-		AC_VAR:          int16(buf.Read16()),
-		AC_VAR_SF:       int16(buf.Read16()),
-		AC_PF:           int16(buf.Read16()),
-		AC_PF_SF:        int16(buf.Read16()),
-		AC_Energy_WH:    int32(buf.Read32()),
-		AC_Energy_WH_SF: buf.Read16(),
-		DC_Current:      buf.Read16(),
-		DC_Current_SF:   int16(buf.Read16()),
-		DC_Voltage:      buf.Read16(),
-		DC_Voltage_SF:   int16(buf.Read16()),
-		DC_Power:        int16(buf.Read16()),
-		DC_Power_SF:     int16(buf.Read16()),
+		SunSpec_DID:      buf.Read16(),
+		SunSpec_Length:   buf.Read16(),
+		AC_Current:       buf.Read16(),
+		AC_CurrentA:      buf.Read16(),
+		AC_CurrentB:      buf.Read16(),
+		AC_CurrentC:      buf.Read16(),
+		AC_Current_SF:    int16(buf.Read16()),
+		AC_VoltageAB:     buf.Read16(),
+		AC_VoltageBC:     buf.Read16(),
+		AC_VoltageCA:     buf.Read16(),
+		AC_VoltageAN:     buf.Read16(),
+		AC_VoltageBN:     buf.Read16(),
+		AC_VoltageCN:     buf.Read16(),
+		AC_Voltage_SF:    int16(buf.Read16()),
+		AC_Power:         int16(buf.Read16()),
+		AC_Power_SF:      int16(buf.Read16()),
+		AC_Frequency:     buf.Read16(),
+		AC_Frequency_SF:  int16(buf.Read16()),
+		AC_VA:            int16(buf.Read16()),
+		AC_VA_SF:         int16(buf.Read16()),
+		AC_VAR:           int16(buf.Read16()),
+		AC_VAR_SF:        int16(buf.Read16()),
+		AC_PF:            int16(buf.Read16()),
+		AC_PF_SF:         int16(buf.Read16()),
+		AC_Energy_WH:     int32(buf.Read32()),
+		AC_Energy_WH_SF:  buf.Read16(),
+		DC_Current:       buf.Read16(),
+		DC_Current_SF:    int16(buf.Read16()),
+		DC_Voltage:       buf.Read16(),
+		DC_Voltage_SF:    int16(buf.Read16()),
+		DC_Power:         int16(buf.Read16()),
+		DC_Power_SF:      int16(buf.Read16()),
+		Temp_Cabinet:     int16(buf.Read16()),
+		Temp_Sink:        int16(buf.Read16()),
+		Temp_Transformer: int16(buf.Read16()),
+		Temp_Other:       int16(buf.Read16()),
+		Temp_SF:          int16(buf.Read16()),
+		Status:           buf.Read16(),
+		Status_Vendor:    buf.Read16(),
 	}
-	buf.Read16() // Skip address as per SunSpec Technical Note
-	im.Temp_Sink = int16(buf.Read16())
-	buf.Read16() // Skip address as per SunSpec Technical Note
-	buf.Read16() // Skip address as per SunSpec Technical Note
-	im.Temp_SF = int16(buf.Read16())
-	im.Status = buf.Read16()
-	im.Status_Vendor = buf.Read16()
 
 	return im, nil
 }
@@ -256,9 +260,9 @@ func NewMeterModel(data []byte) (MeterModel, error) {
 		SunSpec_DID:       buf.Read16(),
 		SunSpec_Length:    buf.Read16(),
 		M_AC_Current:      buf.Read16(),
-		M_AC_CurrentA:     (buf.Read16()),
-		M_AC_CurrentB:     (buf.Read16()),
-		M_AC_CurrentC:     (buf.Read16()),
+		M_AC_CurrentA:     buf.Read16(),
+		M_AC_CurrentB:     buf.Read16(),
+		M_AC_CurrentC:     buf.Read16(),
 		M_AC_Current_SF:   int16(buf.Read16()),
 		M_AC_VoltageLN:    buf.Read16(),
 		M_AC_VoltageAN:    buf.Read16(),
