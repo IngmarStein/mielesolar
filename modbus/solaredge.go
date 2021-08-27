@@ -2,8 +2,8 @@ package solaredge
 
 import (
 	"bytes"
+	"encoding/binary"
 	"errors"
-	"github.com/u-root/u-root/pkg/uio"
 )
 
 const (
@@ -24,80 +24,52 @@ type CommonModel struct {
 	C_SunSpec_ID     uint32
 	C_SunSpec_DID    uint16
 	C_SunSpec_Length uint16
-	C_Manufacturer   []byte
-	C_Model          []byte
-	C_Version        []byte // Version defined in SunSpec implementation note as String(16) however is incorrect
-	C_SerialNumber   []byte
+	C_Manufacturer   [32]byte
+	C_Model          [32]byte
+	C_Version        [32]byte // Version defined in SunSpec implementation note as String(16) however is incorrect
+	C_SerialNumber   [32]byte
 	C_DeviceAddress  uint16
 }
 
 type CommonMeter struct {
 	C_SunSpec_DID    uint16
 	C_SunSpec_Length uint16
-	C_Manufacturer   []byte
-	C_Model          []byte
-	C_Option         []byte
-	C_Version        []byte // Version defined in SunSpec implementation note as String(16) however is incorrect
-	C_SerialNumber   []byte
+	C_Manufacturer   [32]byte
+	C_Model          [32]byte
+	C_Option         [16]byte
+	C_Version        [16]byte // Version defined in SunSpec implementation note as String(16) however is incorrect
+	C_SerialNumber   [16]byte
 	C_DeviceAddress  uint16
 }
 
 // NewCommonModel takes a block of data read from the Modbus TCP connection and returns a new
 // populated struct
 func NewCommonModel(data []byte) (CommonModel, error) {
-	buf := uio.NewBigEndianBuffer(data)
 	if len(data) != 140 {
 		return CommonModel{}, errors.New("improper data size")
 	}
 
+	buf := bytes.NewReader(data)
+
 	var cm CommonModel
-	cm.C_Manufacturer = make([]byte, 32)
-	cm.C_Model = make([]byte, 32)
-	cm.C_Version = make([]byte, 32)
-	cm.C_SerialNumber = make([]byte, 32)
-
-	cm.C_SunSpec_ID = buf.Read32()
-	cm.C_SunSpec_DID = buf.Read16()
-	cm.C_SunSpec_Length = buf.Read16()
-	buf.ReadBytes(cm.C_Manufacturer[:])
-	buf.ReadBytes(cm.C_Model[:])
-	buf.ReadBytes(cm.C_Version[:])
-	buf.ReadBytes(cm.C_SerialNumber[:])
-
-	cm.C_Manufacturer = bytes.Trim(cm.C_Manufacturer, "\x00")
-	cm.C_Model = bytes.Trim(cm.C_Model, "\x00")
-	cm.C_Version = bytes.Trim(cm.C_Version, "\x00")
-	cm.C_SerialNumber = bytes.Trim(cm.C_SerialNumber, "\x00")
+	if err := binary.Read(buf, binary.BigEndian, &cm); err != nil {
+		return CommonModel{}, err
+	}
 
 	return cm, nil
 }
 
 func NewCommonMeter(data []byte) (CommonMeter, error) {
-	buf := uio.NewBigEndianBuffer(data)
 	if len(data) < 100 {
 		return CommonMeter{}, errors.New("improper data size")
 	}
 
+	buf := bytes.NewReader(data)
+
 	var cm CommonMeter
-	cm.C_Manufacturer = make([]byte, 32)
-	cm.C_Model = make([]byte, 32)
-	cm.C_Version = make([]byte, 16)
-	cm.C_Option = make([]byte, 16)
-	cm.C_SerialNumber = make([]byte, 16)
-
-	cm.C_SunSpec_DID = buf.Read16()
-	cm.C_SunSpec_Length = buf.Read16()
-	buf.ReadBytes(cm.C_Manufacturer[:])
-	buf.ReadBytes(cm.C_Model[:])
-	buf.ReadBytes(cm.C_Option[:])
-	buf.ReadBytes(cm.C_Version[:])
-	buf.ReadBytes(cm.C_SerialNumber[:])
-
-	cm.C_Manufacturer = bytes.Trim(cm.C_Manufacturer, "\x00")
-	cm.C_Model = bytes.Trim(cm.C_Model, "\x00")
-	cm.C_Option = bytes.Trim(cm.C_Option, "\x00")
-	cm.C_Version = bytes.Trim(cm.C_Version, "\x00")
-	cm.C_SerialNumber = bytes.Trim(cm.C_SerialNumber, "\x00")
+	if err := binary.Read(buf, binary.BigEndian, &cm); err != nil {
+		return CommonMeter{}, err
+	}
 
 	return cm, nil
 }
@@ -200,111 +172,31 @@ type MeterModel struct {
 // NewInverterModel takes a block of data read from the Modbus TCP connection and returns
 // a new populated struct.
 func NewInverterModel(data []byte) (InverterModel, error) {
-	buf := uio.NewBigEndianBuffer(data)
 	if len(data) != 80 {
 		return InverterModel{}, errors.New("improper data size")
 	}
 
-	im := InverterModel{
-		SunSpec_DID:      buf.Read16(),
-		SunSpec_Length:   buf.Read16(),
-		AC_Current:       buf.Read16(),
-		AC_CurrentA:      buf.Read16(),
-		AC_CurrentB:      buf.Read16(),
-		AC_CurrentC:      buf.Read16(),
-		AC_Current_SF:    int16(buf.Read16()),
-		AC_VoltageAB:     buf.Read16(),
-		AC_VoltageBC:     buf.Read16(),
-		AC_VoltageCA:     buf.Read16(),
-		AC_VoltageAN:     buf.Read16(),
-		AC_VoltageBN:     buf.Read16(),
-		AC_VoltageCN:     buf.Read16(),
-		AC_Voltage_SF:    int16(buf.Read16()),
-		AC_Power:         int16(buf.Read16()),
-		AC_Power_SF:      int16(buf.Read16()),
-		AC_Frequency:     buf.Read16(),
-		AC_Frequency_SF:  int16(buf.Read16()),
-		AC_VA:            int16(buf.Read16()),
-		AC_VA_SF:         int16(buf.Read16()),
-		AC_VAR:           int16(buf.Read16()),
-		AC_VAR_SF:        int16(buf.Read16()),
-		AC_PF:            int16(buf.Read16()),
-		AC_PF_SF:         int16(buf.Read16()),
-		AC_Energy_WH:     int32(buf.Read32()),
-		AC_Energy_WH_SF:  buf.Read16(),
-		DC_Current:       buf.Read16(),
-		DC_Current_SF:    int16(buf.Read16()),
-		DC_Voltage:       buf.Read16(),
-		DC_Voltage_SF:    int16(buf.Read16()),
-		DC_Power:         int16(buf.Read16()),
-		DC_Power_SF:      int16(buf.Read16()),
-		Temp_Cabinet:     int16(buf.Read16()),
-		Temp_Sink:        int16(buf.Read16()),
-		Temp_Transformer: int16(buf.Read16()),
-		Temp_Other:       int16(buf.Read16()),
-		Temp_SF:          int16(buf.Read16()),
-		Status:           buf.Read16(),
-		Status_Vendor:    buf.Read16(),
+	buf := bytes.NewReader(data)
+
+	var im InverterModel
+	if err := binary.Read(buf, binary.BigEndian, &im); err != nil {
+		return InverterModel{}, err
 	}
 
 	return im, nil
 }
 
 func NewMeterModel(data []byte) (MeterModel, error) {
-	buf := uio.NewBigEndianBuffer(data)
-	if len(data) <= 10 {
+	if len(data) <= 112 {
 		return MeterModel{}, errors.New("improper data size")
 	}
 
-	im := MeterModel{
-		SunSpec_DID:       buf.Read16(),
-		SunSpec_Length:    buf.Read16(),
-		M_AC_Current:      buf.Read16(),
-		M_AC_CurrentA:     buf.Read16(),
-		M_AC_CurrentB:     buf.Read16(),
-		M_AC_CurrentC:     buf.Read16(),
-		M_AC_Current_SF:   int16(buf.Read16()),
-		M_AC_VoltageLN:    buf.Read16(),
-		M_AC_VoltageAN:    buf.Read16(),
-		M_AC_VoltageBN:    buf.Read16(),
-		M_AC_VoltageCN:    buf.Read16(),
-		M_AC_VoltageLL:    buf.Read16(),
-		M_AC_VoltageAB:    buf.Read16(),
-		M_AC_VoltageBC:    buf.Read16(),
-		M_AC_VoltageCA:    buf.Read16(),
-		M_AC_Voltage_SF:   int16(buf.Read16()),
-		M_AC_Frequency:    buf.Read16(),
-		M_AC_Frequency_SF: int16(buf.Read16()),
-		M_AC_Power:        int16(buf.Read16()),
-		M_AC_Power_A:      int16(buf.Read16()),
-		M_AC_Power_B:      int16(buf.Read16()),
-		M_AC_Power_C:      int16(buf.Read16()),
-		M_AC_Power_SF:     int16(buf.Read16()),
-		M_AC_VA:           buf.Read16(),
-		M_AC_VA_A:         buf.Read16(),
-		M_AC_VA_B:         buf.Read16(),
-		M_AC_VA_C:         buf.Read16(),
-		M_AC_VA_SF:        int16(buf.Read16()),
-		M_AC_VAR:          buf.Read16(),
-		M_AC_VAR_A:        buf.Read16(),
-		M_AC_VAR_B:        buf.Read16(),
-		M_AC_VAR_C:        buf.Read16(),
-		M_AC_VAR_SF:       int16(buf.Read16()),
-		M_AC_PF:           buf.Read16(),
-		M_AC_PF_A:         buf.Read16(),
-		M_AC_PF_B:         buf.Read16(),
-		M_AC_PF_C:         buf.Read16(),
-		M_AC_PF_SF:        int16(buf.Read16()),
-		M_Exported:        buf.Read32(),
-		M_Exported_A:      buf.Read32(),
-		M_Exported_B:      buf.Read32(),
-		M_Exported_C:      buf.Read32(),
-		M_Imported:        buf.Read32(),
-		M_Imported_A:      buf.Read32(),
-		M_Imported_B:      buf.Read32(),
-		M_Imported_C:      buf.Read32(),
-		M_Energy_W_SF:     int16(buf.Read16()),
+	buf := bytes.NewReader(data)
+
+	var mm MeterModel
+	if err := binary.Read(buf, binary.BigEndian, &mm); err != nil {
+		return MeterModel{}, err
 	}
 
-	return im, nil
+	return mm, nil
 }

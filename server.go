@@ -3,11 +3,11 @@ package main
 import (
 	"log"
 	"math"
-	solaredge "mielesolar/modbus"
 	"time"
 
 	"github.com/goburrow/modbus"
 	"github.com/ingmarstein/miele-go/miele"
+	solaredge "github.com/ingmarstein/mielesolar/modbus"
 )
 
 type server struct {
