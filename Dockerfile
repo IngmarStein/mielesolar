@@ -1,7 +1,7 @@
 FROM golang:1.17.2-alpine AS builder
 WORKDIR /go/src/github.com/ingmarstein/mielesolar/
 COPY . .
-RUN apk add -U --no-cache ca-certificates
+RUN apk add -U --no-cache ca-certificates \
  && CGO_ENABLED=0 GOOS=linux go build .
 
 FROM scratch
