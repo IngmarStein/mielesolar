@@ -1,11 +1,11 @@
 module github.com/ingmarstein/mielesolar
 
-go 1.17
+go 1.18
 
 require (
 	github.com/goburrow/modbus v0.1.0
 	github.com/goburrow/serial v0.1.0 // indirect
-	github.com/ingmarstein/miele-go v0.0.0-20210919114520-e8870ca4dfba
+	github.com/ingmarstein/miele-go v0.0.0-20220320150108-2a716ade3c54
 )
 
 require (
