@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/goburrow/modbus v0.1.0
 	github.com/goburrow/serial v0.1.0 // indirect
-	github.com/ingmarstein/miele-go v0.0.0-20220418201201-35e89412ce2d
+	github.com/ingmarstein/miele-go v0.0.0-20220716125812-ab777da63cf4
 )
 
 require (
