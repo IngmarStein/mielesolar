@@ -28,7 +28,7 @@ jobs:
       - name: Package
         env:
           SPK_ARCH: x86_64
-          SPK_PACKAGE_VERSION: ${{ github.sha }}
+          SPK_PACKAGE_VERSION: latest-${{ github.sha }}
           SPK_PACKAGE_SUFFIX: latest
         run: ./.ci/build-package.sh
 
@@ -51,7 +51,7 @@ jobs:
       - name: Generate repository JSON
         env:
           SPK_ARCH: x86_64
-          SPK_PACKAGE_VERSION: ${{ github.sha }}
+          SPK_PACKAGE_VERSION: latest-${{ github.sha }}
           SPK_PACKAGE_SUFFIX: latest
           SPK_PACKAGE_URL: https://github.com/IngmarStein/mielesolar/releases/download/latest/mielesolar-x86_64-latest.spk
         run: |
