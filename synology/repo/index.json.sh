@@ -1,5 +1,5 @@
 #!/bin/sh
-SPK_PACKAGE_FILE="mielesolar-${SPK_ARCH:-x86_64}-${SPK_PACKAGE_SUFFIX:-latest}.spk"
+SPK_PACKAGE_FILE="synology/mielesolar-${SPK_ARCH:-x86_64}-${SPK_PACKAGE_SUFFIX:-latest}.spk"
 cat <<EOF
 {
   "packages": [
@@ -12,7 +12,7 @@ cat <<EOF
       "download_count": 56691,
       "recent_download_count": 1138,
       "link": "${SPK_PACKAGE_URL}",
-      "size": $(stat -f "%z" "${SPK_PACKAGE_FILE}"),
+      "size": $(stat --format="%s" "${SPK_PACKAGE_FILE}"),
       "md5": "$(md5sum "${SPK_PACKAGE_FILE}")",
       "snapshot": [],
       "qinst": true,
