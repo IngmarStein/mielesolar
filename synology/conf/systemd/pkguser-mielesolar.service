@@ -1,0 +1,11 @@
+[Unit]
+Description=Mielesolar
+After=network-online.target
+
+[Service]
+Type=simple
+Slice=Mielesolar.slice
+ExecStart=/var/packages/mielesolar/target/bin/start.sh
+Restart=always
+RestartSec=3
+KillMode=process

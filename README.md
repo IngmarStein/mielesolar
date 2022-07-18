@@ -48,6 +48,26 @@ docker run --env MIELE_USERNAME=xxx --env MIELE_PASSWORD=xxx --env MIELE_CLIENT_
 ```
 Alternatively, use the included `docker-compose.yml` file as a template if you prefer to use Docker Compose.
 
+#### On a Synology NAS
+
+##### Install via GUI (Package Center)
+
+- Open the Package Center app.
+- Click on **Manual Install** and upload the Mielesolar package (SPK) you just downloaded.
+  - Provide the configuration parameters
+
+##### mielesolar.conf
+
+> If you upgrade your existing Mielesolar package, no changes will be made to the `mielesolar.conf` file. If you want
+> to overwrite your `mielesolar.conf` configuration with the default one, please uninstall and install the package
+> again.
+
+You can customize the configuration of Mielesolar by using the config file at
+`/var/packages/mielesolar/target/mielesolar.conf`.  
+Please **stop** the package **before** changing the configuration.  
+If you have edited the configuration while Mielesolar is running, please **restart** the Mielesolar package.
+
+
 ### 4. Start your Miele appliance
 
 When starting your dishwasher, washing machine, tumbler, etc. use the "SmartStart" option which delays the start of a

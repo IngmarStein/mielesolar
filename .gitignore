@@ -14,3 +14,9 @@
 # Dependency directories (remove the comment below to include it)
 # vendor/
 /mielesolar
+
+# Packages
+synology/bin/mielesolar
+synology/package.tgz
+synology/*.spk
+synology/INFO

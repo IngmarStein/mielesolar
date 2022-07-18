@@ -1,0 +1,114 @@
+[{
+    "step_title": "Mielesolar configuration",
+    "items": [{
+        "type": "textfield",
+        "desc": "Inverter IP",
+        "subitems": [{
+            "key": "INVERTER_ADDRESS",
+            "desc": "Address or IP",
+            "defaultValue": "",
+            "validator": {
+                "allowBlank": false
+            }
+        }]
+    }, {
+        "type": "textfield",
+        "desc": "Inverter port",
+        "subitems": [{
+            "key": "INVERTER_PORT",
+            "desc": "MODBUS over TCP port",
+            "defaultValue": "502",
+            "validator": {
+                "allowBlank": false
+            }
+        }]
+    }, {
+        "type": "textfield",
+        "desc": "Polling interval in seconds",
+        "subitems": [{
+            "key": "POLL_INTERVAL",
+            "desc": "Interval",
+            "defaultValue": "5",
+            "validator": {
+                "allowBlank": false
+            }
+        }]
+    }, {
+        "type": "textfield",
+        "desc": "Power threshold for automatic device start - set to 0 to disable",
+        "subitems": [{
+            "key": "AUTO_POWER",
+            "desc": "Power (in W)",
+            "defaultValue": "500",
+            "validator": {
+                "allowBlank": false
+            }
+        }]
+    }, {
+        "type": "textfield",
+        "desc": "Device config file (when not using auto-mode)",
+        "subitems": [{
+            "key": "CONFIG_FILE",
+            "desc": "Device config file",
+            "defaultValue": "",
+            "validator": {
+                "allowBlank": true
+            }
+        }]
+    }, {
+        "type": "textfield",
+        "desc": "Miele 3rd Party API client ID",
+        "subitems": [{
+            "key": "MIELE_CLIENT_ID",
+            "desc": "Client ID",
+            "defaultValue": "",
+            "validator": {
+                "allowBlank": false
+            }
+        }]
+    }, {
+        "type": "textfield",
+        "desc": "Miele 3rd Party API client secret",
+        "subitems": [{
+            "key": "MIELE_CLIENT_SECRET",
+            "desc": "Client secret",
+            "defaultValue": "",
+            "validator": {
+                "allowBlank": false
+            }
+        }]
+    }, {
+        "type": "textfield",
+        "desc": "Miele@Home user name",
+        "subitems": [{
+            "key": "MIELE_USERNAME",
+            "desc": "User name",
+            "defaultValue": "",
+            "validator": {
+                "allowBlank": false
+            }
+        }]
+    }, {
+        "type": "textfield",
+        "desc": "Miele@Home password",
+        "subitems": [{
+            "key": "MIELE_PASSWORD",
+            "desc": "Password",
+            "defaultValue": "",
+            "validator": {
+                "allowBlank": false
+            }
+        }]
+    }, {
+        "type": "textfield",
+        "desc": "Country associated with the Miele@Home account",
+        "subitems": [{
+            "key": "COUNTRY_SELECTOR",
+            "desc": "Country",
+            "defaultValue": "de-CH",
+            "validator": {
+                "allowBlank": false
+            }
+        }]
+    }]
+}]

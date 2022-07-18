@@ -1,0 +1,19 @@
+#!/bin/bash
+case "$1" in
+start)
+	synosystemctl start pkguser-mielesolar
+  ;;
+stop)
+	synosystemctl stop pkguser-mielesolar
+  ;;
+status)
+  ;;
+log)
+  echo ""
+  ;;
+*)
+  echo "Usage: $0 {start|stop|status}" >&2
+  exit 1
+  ;;
+esac
+exit 0

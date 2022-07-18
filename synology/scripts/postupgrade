@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# restore config file
+/bin/cp -f "${SYNOPKG_TEMP_UPGRADE_FOLDER}/mielesolar.conf" "${SYNOPKG_PKGDEST}"
+
+exit 0
