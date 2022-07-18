@@ -13,7 +13,7 @@ cat <<EOF
       "recent_download_count": 1138,
       "link": "${SPK_PACKAGE_URL}",
       "size": $(stat --format="%s" "${SPK_PACKAGE_FILE}"),
-      "md5": "$(md5sum "${SPK_PACKAGE_FILE}")",
+      "md5": "$(md5sum "${SPK_PACKAGE_FILE}" | head -c 32)",
       "snapshot": [],
       "qinst": true,
       "qstart": true,

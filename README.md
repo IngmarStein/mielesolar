@@ -50,11 +50,22 @@ Alternatively, use the included `docker-compose.yml` file as a template if you p
 
 #### On a Synology NAS
 
-##### Install via GUI (Package Center)
+##### Add the Mielesolar Synology Package Source
 
-- Open the Package Center app.
-- Click on **Manual Install** and upload the Mielesolar package (SPK) you just downloaded.
-  - Provide the configuration parameters
+1. Open Package Center in DSM and select the `Settings` option.
+2. Select the `Package Sources` tab.
+3. Click `Add`
+4. In the `Name` section enter `Mielesolar`
+5. In the `Location` section enter `https://ingmarstein.github.io/mielesolar/`
+6. Click `OK`
+
+##### Install Mielesolar
+
+1. Go back to Package Center and search for `Mielesolar`
+2. Click on the `Mielesolar` package then select `Install`
+3. Click `Agree` when warned about using a package from an unknown publisher
+4. Click `Done` to confirm installation
+5. Provide the configuration parameters
 
 ##### mielesolar.conf
 
