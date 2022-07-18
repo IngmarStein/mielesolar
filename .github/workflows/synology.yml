@@ -1,8 +1,8 @@
-name: Build and test Go
+name: Build Synology Package (SPK)
 on: [push, pull_request]
 jobs:
   build:
-    name: Build
+    name: Build and package
     runs-on: ubuntu-latest
     steps:
       - name: Set up Go
@@ -25,3 +25,9 @@ jobs:
           SPK_ARCH: x86_64
           SPK_PACKAGE_VERSION: ${{ github.sha }}
         run: ./.ci/build-package.sh
+
+      - name: Archive package
+        uses: actions/upload-artifact@v3
+        with:
+          name: Synology package
+          path: synology/*.spk
