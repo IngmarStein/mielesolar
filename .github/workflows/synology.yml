@@ -1,5 +1,10 @@
 name: Build Synology Package (SPK)
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+permissions:
+  contents: write
 jobs:
   build:
     name: Build and package
@@ -24,10 +29,36 @@ jobs:
         env:
           SPK_ARCH: x86_64
           SPK_PACKAGE_VERSION: ${{ github.sha }}
+          SPK_PACKAGE_SUFFIX: latest
         run: ./.ci/build-package.sh
 
       - name: Archive package
         uses: actions/upload-artifact@v3
         with:
           name: Synology package
-          path: synology/*.spk
+          path: synology/mielesolar-x86_64-latest.spk
+
+      - name: Update latest release
+        uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: true
+          title: "Development Build"
+          files: |
+            synology/mielesolar-x86_64-latest.spk
+
+      - name: Generate repository JSON
+        env:
+          SPK_ARCH: x86_64
+          SPK_PACKAGE_VERSION: ${{ github.sha }}
+          SPK_PACKAGE_SUFFIX: latest
+          SPK_PACKAGE_URL: https://github.com/IngmarStein/mielesolar/releases/download/latest/mielesolar-x86_64-latest.spk
+        run: |
+          mkdir -p repo
+          ./synology/repo/index.json.sh > ./repo/index.json
+
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: repo
