@@ -9,7 +9,7 @@ stop)
 status)
   ;;
 log)
-  echo ""
+  exec tail -n 100 -f "/var/packages/mielesolar/target/mielesolar.log"
   ;;
 *)
   echo "Usage: $0 {start|stop|status}" >&2
