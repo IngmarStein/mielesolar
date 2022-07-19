@@ -1,12 +1,12 @@
 #!/bin/sh
 
 SERVICE_EXEC_PATH="/var/packages/mielesolar/target/bin/mielesolar"
-CONFIG_FILE="/var/packages/mielesolar/target/mielesolar.conf"
+FLAG_CONFIG_FILE="/var/packages/mielesolar/target/mielesolar.conf"
 LOG_FILE="/var/packages/mielesolar/target/mielesolar.log"
 
 # Import config file
 # shellcheck disable=SC1090
-. "${CONFIG_FILE}"
+. "${FLAG_CONFIG_FILE}"
 
 exec "$SERVICE_EXEC_PATH" \
   -interval "${POLL_INTERVAL}" \

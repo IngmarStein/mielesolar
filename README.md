@@ -78,7 +78,6 @@ You can customize the configuration of Mielesolar by using the config file at
 Please **stop** the package **before** changing the configuration.  
 If you have edited the configuration while Mielesolar is running, please **restart** the Mielesolar package.
 
-
 ### 4. Start your Miele appliance
 
 When starting your dishwasher, washing machine, tumbler, etc. use the "SmartStart" option which delays the start of a
