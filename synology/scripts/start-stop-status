@@ -1,12 +1,13 @@
 #!/bin/bash
 case "$1" in
 start)
-  synosystemctl start pkguser-mielesolar
+  synosystemctl start pkgctl-mielesolar
   ;;
 stop)
-  synosystemctl stop pkguser-mielesolar
+  synosystemctl stop pkgctl-mielesolar
   ;;
 status)
+  synosystemctl get-active-status pkgctl-mielesolar
   ;;
 log)
   exec tail -n 100 -f "/var/packages/mielesolar/target/mielesolar.log"
