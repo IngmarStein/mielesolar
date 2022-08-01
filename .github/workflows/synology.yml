@@ -22,6 +22,7 @@ jobs:
         env:
           GOOS: linux
           GOARCH: amd64
+          GOAMD64: v2
           GOPROXY: "https://proxy.golang.org"
         run: go build -v
 
