@@ -62,7 +62,11 @@ jobs:
           mkdir -p repo
           ./synology/repo/index.json.sh > ./repo/index.json
 
-      - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v1
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
         with:
-          folder: repo
+          path: repo
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v1
