@@ -1,18 +1,25 @@
 #!/bin/bash
-if [ "${EUID}" -eq 0 ]; then
-  UNIT="pkgctl-mielesolar"
-else
-  UNIT="pkguser-mielesolar"
-fi
 case "$1" in
 start)
-  synosystemctl start "${UNIT}"
+  if [ "${EUID}" -eq 0 ]; then
+    sudo -u mielesolar synosystemctl start pkguser-mielesolar
+  else
+    synosystemctl start pkguser-mielesolar
+  fi
   ;;
 stop)
-  synosystemctl stop "${UNIT}"
+  if [ "${EUID}" -eq 0 ]; then
+    sudo -u mielesolar synosystemctl stop pkguser-mielesolar
+  else
+    synosystemctl stop pkguser-mielesolar
+  fi
   ;;
 status)
-  synosystemctl get-active-status "${UNIT}"
+  if [ "${EUID}" -eq 0 ]; then
+    sudo -u mielesolar synosystemctl get-active-status pkguser-mielesolar
+  else
+    synosystemctl get-active-status pkguser-mielesolar
+  fi
   ;;
 log)
   exec tail -n 100 -f "/var/packages/mielesolar/target/mielesolar.log"
@@ -22,4 +29,3 @@ log)
   exit 1
   ;;
 esac
-exit 0
