@@ -1,13 +1,18 @@
 #!/bin/bash
+if [ "${EUID}" -eq 0 ]; then
+  UNIT="pkgctl-mielesolar"
+else
+  UNIT="pkguser-mielesolar"
+fi
 case "$1" in
 start)
-  synosystemctl start pkgctl-mielesolar
+  synosystemctl start "${UNIT}"
   ;;
 stop)
-  synosystemctl stop pkgctl-mielesolar
+  synosystemctl stop "${UNIT}"
   ;;
 status)
-  synosystemctl get-active-status pkgctl-mielesolar
+  synosystemctl get-active-status "${UNIT}"
   ;;
 log)
   exec tail -n 100 -f "/var/packages/mielesolar/target/mielesolar.log"
