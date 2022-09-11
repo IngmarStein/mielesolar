@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"github.com/ingmarstein/miele-go/miele"
-	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
@@ -72,7 +71,7 @@ func main() {
 
 	var devices []device
 	if *autoPower == 0 {
-		configData, err := ioutil.ReadFile(*configFile)
+		configData, err := os.ReadFile(*configFile)
 		if err != nil {
 			log.Fatalf("error reading %s: %v", *configFile, err)
 		}

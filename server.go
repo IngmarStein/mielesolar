@@ -51,16 +51,14 @@ func (s *server) serve() {
 	ticker := time.NewTicker(time.Duration(*pollInterval) * time.Second)
 
 	for {
-		select {
-		case <-ticker.C:
-			if err := s.refresh(); err != nil {
-				log.Printf("attempting to reconnect")
-				_ = s.handler.Close()
-				time.Sleep(2 * time.Second)
-				err = s.handler.Connect()
-				if err != nil {
-					log.Printf("error reconnecting: %v\n", err)
-				}
+		<-ticker.C
+		if err := s.refresh(); err != nil {
+			log.Printf("attempting to reconnect")
+			_ = s.handler.Close()
+			time.Sleep(2 * time.Second)
+			err = s.handler.Connect()
+			if err != nil {
+				log.Printf("error reconnecting: %v\n", err)
 			}
 		}
 	}

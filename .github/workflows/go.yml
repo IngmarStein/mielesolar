@@ -22,3 +22,11 @@ jobs:
 #        env:
 #          GOPROXY: "https://proxy.golang.org"
 #        run: go test -v .
+
+      - name: Vet
+        run: go vet ./...
+
+      - uses: dominikh/staticcheck-action@v1.2.0
+        with:
+          version: latest
+          install-go: false
