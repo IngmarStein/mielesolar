@@ -97,10 +97,12 @@ consumption value for all appliances and replace it with `-config $file` using t
 [
   {
     "id": "000xxxxxxxxx",
+    "name": "Washing Machine",
     "power": 200
   },
   {
     "id": "000yyyyyyyyy",
+    "name": "Tumble Dryer",
     "power": 500
   }
 ]

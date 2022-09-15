@@ -64,9 +64,14 @@ func (s *server) serve() {
 	}
 }
 
+const inverterInfoBaseAddress = 40000
+const inverterDataBaseAddress = 40069
+const meterInfoBaseAddress = 40121
+const meterDataBaseAddress = 40188
+
 func (s *server) printSolarEdgeInfo() {
 	// Collect and log common inverter data
-	inverterData, err := s.mb.ReadHoldingRegisters(40000, 70)
+	inverterData, err := s.mb.ReadHoldingRegisters(inverterInfoBaseAddress, 70)
 	if err != nil {
 		log.Fatalf("error reading inverter registers: %s", err.Error())
 	}
@@ -80,7 +85,7 @@ func (s *server) printSolarEdgeInfo() {
 	log.Printf("Inverter Serial: %s", cm.C_SerialNumber)
 	log.Printf("Inverter Version: %s", cm.C_Version)
 
-	meterData, err := s.mb.ReadHoldingRegisters(40121, 65)
+	meterData, err := s.mb.ReadHoldingRegisters(meterInfoBaseAddress, 65)
 	if err != nil {
 		log.Fatalf("error reading meter registers: %s", err.Error())
 	}
@@ -97,7 +102,7 @@ func (s *server) printSolarEdgeInfo() {
 }
 
 func (s *server) currentPowerExport() (float64, error) {
-	inverterData, err := s.mb.ReadHoldingRegisters(40069, 40)
+	inverterData, err := s.mb.ReadHoldingRegisters(inverterDataBaseAddress, 40)
 	if err != nil {
 		log.Printf("error reading inverter registers: %s", err.Error())
 		return 0, err
@@ -117,7 +122,7 @@ func (s *server) currentPowerExport() (float64, error) {
 	inverterACPower := float64(inverter.AC_Power) * math.Pow(10.0, float64(inverter.AC_Power_SF))
 	log.Printf("Inverter AC Power: %f", inverterACPower)
 
-	meterData, err := s.mb.ReadHoldingRegisters(40188, 105)
+	meterData, err := s.mb.ReadHoldingRegisters(meterDataBaseAddress, 105)
 	if err != nil {
 		log.Printf("error reading meter data: %s", err.Error())
 		return 0, err
@@ -160,7 +165,7 @@ func (s *server) updateConfiguredDevices() bool {
 		device.waiting = false
 		state, err := s.mc.GetDeviceState(device.ID, miele.GetDeviceStateRequest{})
 		if err != nil {
-			log.Printf("error getting device state for %s: %v", device.ID, err)
+			log.Printf("error getting device state for %s (%s): %v", device.Name, device.ID, err)
 			continue
 		}
 		if state.Status.ValueRaw == miele.DEVICE_STATUS_PROGRAMMED_WAITING_TO_START && state.RemoteEnable.FullRemoteControl {
@@ -176,6 +181,7 @@ func (s *server) updateAutoDevices() bool {
 	resp, err := s.mc.ListDevices(miele.ListDevicesRequest{})
 	if err != nil {
 		log.Printf("error listing devices: %v", err)
+		return false
 	}
 
 	s.devices = []device{}
@@ -195,6 +201,7 @@ func (s *server) updateAutoDevices() bool {
 
 		s.devices = append(s.devices, device{
 			ID:      r.Ident.DeviceIdentLabel.FabNumber,
+			Name:    r.Ident.DeviceName,
 			Power:   float64(*autoPower),
 			waiting: true,
 		})
@@ -225,16 +232,16 @@ func (s *server) consumePower(available float64) {
 		if !device.waiting || device.Power > available {
 			continue
 		}
-		log.Printf("starting device %s", device.ID)
+		log.Printf("starting device %s (%s)", device.Name, device.ID)
 		err := s.mc.DeviceAction(device.ID, miele.DeviceActionRequest{
 			ProcessAction: miele.ACTION_START,
 		})
 		if err != nil {
-			log.Printf("error starting device %s: %v", device.ID, err)
+			log.Printf("error starting device %s (%s): %v", device.Name, device.ID, err)
 			continue
 		}
 		available -= device.Power
-		log.Printf("started device %s, remaining power: %f", device.ID, available)
+		log.Printf("started device %s (%s), remaining power: %f", device.Name, device.ID, available)
 		device.waiting = false
 	}
 }

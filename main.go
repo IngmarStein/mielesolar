@@ -44,6 +44,7 @@ func defaultInt(key string, value int) int {
 
 type device struct {
 	ID      string  `json:"id"`
+	Name    string  `json:"name"`
 	Power   float64 `json:"power"`
 	waiting bool
 }
