@@ -20,7 +20,7 @@ jobs:
           go-version: 1.19.2
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.1.0
 
       - name: Build
         env:
