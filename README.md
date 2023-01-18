@@ -38,7 +38,7 @@ the `vg` parameter to the locale where you registered your Miele@Home account, e
 
 #### Native
 ```
-go get github.com/IngmarStein/mielesolar
+go install github.com/ingmarstein/mielesolar
 MIELE_USERNAME=xxx MIELE_PASSWORD=xxx MIELE_CLIENT_ID=xxx MIELE_CLIENT_SECRET=xxx mielesolar -inverter $IP -port 502 -vg de-DE -auto 500
 ```
 
