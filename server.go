@@ -10,20 +10,30 @@ import (
 	solaredge "github.com/ingmarstein/mielesolar/modbus"
 )
 
+type modeEnum int
+
+const (
+	ManualMode modeEnum = iota
+	AutoSingleMode
+	AutoAllMode
+)
+
 type server struct {
 	mc        *miele.Client
 	mb        modbus.Client
 	handler   *modbus.TCPClientHandler
 	devices   []device
+	mode      modeEnum
 	autoPower int
 	verbose   bool
 }
 
-func newServer(modbusAddress string, autoPower int, devices []device, verbose bool, mieleClient *miele.Client) *server {
+func newServer(modbusAddress string, mode modeEnum, autoPower int, devices []device, verbose bool, mieleClient *miele.Client) *server {
 	srv := server{
 		mc:        mieleClient,
 		handler:   modbus.NewTCPClientHandler(modbusAddress),
 		devices:   devices,
+		mode:      mode,
 		autoPower: autoPower,
 		verbose:   verbose,
 	}
@@ -211,10 +221,9 @@ func (s *server) updateAutoDevices() bool {
 	return deviceWaiting
 }
 
-// updateDevices updates all Miele appliances and returns whether
-// one is waiting for SmartStart.
+// updateDevices updates all Miele appliances and returns whether one is waiting for SmartStart.
 func (s *server) updateDevices() bool {
-	if *autoPower == 0 {
+	if s.mode == ManualMode {
 		return s.updateConfiguredDevices()
 	}
 
@@ -240,7 +249,9 @@ func (s *server) consumePower(available float64) {
 			log.Printf("error starting device %s (%s): %v", device.Name, device.ID, err)
 			continue
 		}
-		available -= device.Power
+		if s.mode != AutoAllMode {
+			available -= device.Power
+		}
 		log.Printf("started device %s (%s), remaining power: %f", device.Name, device.ID, available)
 		device.waiting = false
 	}

@@ -20,9 +20,10 @@ var clientID = flag.String("client-id", os.Getenv("MIELE_CLIENT_ID"), "Miele 3rd
 var clientSecret = flag.String("client-secret", os.Getenv("MIELE_CLIENT_SECRET"), "Miele 3rd Party API client secret")
 var username = flag.String("user", os.Getenv("MIELE_USERNAME"), "Miele@Home user name")
 var password = flag.String("password", os.Getenv("MIELE_PASSWORD"), "Miele@Home password")
-var vg = flag.String("vg", "de-CH", "country selector")
-var autoPower = flag.Int("auto", 0, "automatically start waiting devices if a minimum amount of power is available")
-var verbose = flag.Bool("verbose", false, "verbose mode")
+var vg = flag.String("vg", "de-CH", "Country selector")
+var autoPower = flag.Int("auto", 0, "Automatically start waiting devices if a minimum amount of power is available")
+var autoMode = flag.String("auto-mode", "single", "How many devices to start when the amount of power specified by -auto is available. Valid values: \"single\" or \"all\"")
+var verbose = flag.Bool("verbose", false, "Verbose mode")
 
 func defaultString(key, value string) string {
 	if v := os.Getenv(key); v != "" {
@@ -70,8 +71,28 @@ func main() {
 		os.Exit(1)
 	}
 
+	if *autoPower != 0 && *configFile != "" {
+		log.Println("WARNING: configuration file is ignored in automatic mode")
+	} else if *autoPower == 0 && *configFile == "" {
+		log.Println("Either -auto or -config must be specified")
+		flag.Usage()
+		os.Exit(1)
+	}
+
+	var mode modeEnum
+	switch *autoMode {
+	case "single":
+		mode = AutoSingleMode
+	case "all":
+		mode = AutoAllMode
+	default:
+		flag.Usage()
+		os.Exit(1)
+	}
+
 	var devices []device
 	if *autoPower == 0 {
+		mode = ManualMode
 		configData, err := os.ReadFile(*configFile)
 		if err != nil {
 			log.Fatalf("error reading %s: %v", *configFile, err)
@@ -83,7 +104,7 @@ func main() {
 
 	client := miele.NewClientWithAuth(*clientID, *clientSecret, *vg, *username, *password)
 
-	srv := newServer(fmt.Sprintf("%s:%d", *inverterAddress, *inverterPort), *autoPower, devices, *verbose, client)
+	srv := newServer(fmt.Sprintf("%s:%d", *inverterAddress, *inverterPort), mode, *autoPower, devices, *verbose, client)
 	srv.printSolarEdgeInfo()
 
 	defer srv.close()
