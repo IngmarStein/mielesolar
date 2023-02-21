@@ -25,5 +25,6 @@ docker-build: $(BINARY_NAME) Dockerfile
 	DOCKER_BUILDKIT=1 docker build .
 
 update:
+	go get -u
 	GONOPROXY=github.com/ingmarstein/miele-go go get -u github.com/ingmarstein/miele-go@latest
 	go mod tidy
