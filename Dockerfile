@@ -1,4 +1,4 @@
-FROM golang:1.20.1-alpine AS builder
+FROM golang:1.20.2-alpine AS builder
 WORKDIR /go/src/github.com/ingmarstein/mielesolar/
 COPY . .
 RUN apk add -U --no-cache ca-certificates git \
