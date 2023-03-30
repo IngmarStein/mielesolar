@@ -171,7 +171,8 @@ func (s *server) refresh() error {
 
 func (s *server) updateConfiguredDevices() bool {
 	var deviceWaiting bool
-	for _, device := range s.devices {
+	for i := 0; i < len(s.devices); i++ {
+		device := &s.devices[i]
 		device.waiting = false
 		state, err := s.mc.GetDeviceState(device.ID, miele.GetDeviceStateRequest{})
 		if err != nil {
@@ -237,7 +238,8 @@ func (s *server) updateDevices() bool {
 // https://github.com/demel42/IPSymconMieleAtHome
 // https://www.symcon.de/forum/threads/34249-Miele-Home-XKM-3100W-Protokollanalyse
 func (s *server) consumePower(available float64) {
-	for _, device := range s.devices {
+	for i := 0; i < len(s.devices); i++ {
+		device := &s.devices[i]
 		if !device.waiting || device.Power > available {
 			continue
 		}
