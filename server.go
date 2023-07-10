@@ -19,13 +19,14 @@ const (
 )
 
 type server struct {
-	mc        *miele.Client
-	mb        modbus.Client
-	handler   *modbus.TCPClientHandler
-	devices   []device
-	mode      modeEnum
-	autoPower int
-	verbose   bool
+	mc         *miele.Client
+	mb         modbus.Client
+	handler    *modbus.TCPClientHandler
+	devices    []device
+	mode       modeEnum
+	autoPower  int
+	verbose    bool
+	hasBattery bool
 }
 
 func newServer(modbusAddress string, mode modeEnum, autoPower int, devices []device, verbose bool, mieleClient *miele.Client) *server {
@@ -74,10 +75,12 @@ func (s *server) serve() {
 	}
 }
 
-const inverterInfoBaseAddress = 40000
-const inverterDataBaseAddress = 40069
-const meterInfoBaseAddress = 40121
-const meterDataBaseAddress = 40188
+const inverterInfoBaseAddress = 40000 // 0x9C40
+const inverterDataBaseAddress = 40069 // 0x9C85
+const meterInfoBaseAddress = 40121    // 0x9CB9
+const meterDataBaseAddress = 40188    // 0x9CFC
+const batteryInfoBaseAddress = 57600  // 0xE100
+const batteryDataBaseAddress = 57664  // 0xE140
 
 func (s *server) printSolarEdgeInfo() {
 	// Collect and log common inverter data
@@ -100,15 +103,31 @@ func (s *server) printSolarEdgeInfo() {
 		log.Fatalf("error reading meter registers: %s", err.Error())
 	}
 
-	cm2, err := solaredge.NewCommonMeter(meterData)
+	mm, err := solaredge.NewCommonMeter(meterData)
 	if err != nil {
 		log.Fatalf("error parsing meter registers: %s", err.Error())
 	}
-	log.Printf("Meter Manufacturer: %s", cm2.C_Manufacturer)
-	log.Printf("Meter Model: %s", cm2.C_Model)
-	log.Printf("Meter Serial: %s", cm2.C_SerialNumber)
-	log.Printf("Meter Version: %s", cm2.C_Version)
-	log.Printf("Meter Option: %s", cm2.C_Option)
+	log.Printf("Meter Manufacturer: %s", mm.C_Manufacturer)
+	log.Printf("Meter Model: %s", mm.C_Model)
+	log.Printf("Meter Serial: %s", mm.C_SerialNumber)
+	log.Printf("Meter Version: %s", mm.C_Version)
+	log.Printf("Meter Option: %s", mm.C_Option)
+
+	batteryData, err := s.mb.ReadHoldingRegisters(batteryInfoBaseAddress, 32)
+	if err != nil {
+		log.Fatalf("error reading battery registers: %s", err.Error())
+	}
+
+	bm, err := solaredge.NewCommonBattery(batteryData)
+	if err != nil {
+		log.Fatalf("error parsing battery registers: %s", err.Error())
+	}
+	log.Printf("Battery Manufacturer: %s", bm.C_Manufacturer)
+	log.Printf("Battery Model: %s", bm.C_Model)
+	log.Printf("Battery Serial: %s", bm.C_SerialNumber)
+	log.Printf("Battery Version: %s", bm.C_Version)
+
+	s.hasBattery = bm.C_Model[0] != 0
 }
 
 func (s *server) currentPowerExport() (float64, error) {
@@ -145,6 +164,21 @@ func (s *server) currentPowerExport() (float64, error) {
 	}
 	meterACPower := float64(mt.M_AC_Power) * math.Pow(10.0, float64(mt.M_AC_Power_SF))
 	log.Printf("Meter AC Power: %f", meterACPower)
+
+	if s.hasBattery {
+		batteryData, err := s.mb.ReadHoldingRegisters(batteryDataBaseAddress, 43)
+		if err != nil {
+			log.Printf("error reading battery data: %s", err.Error())
+			return 0, err
+		}
+
+		b, err := solaredge.NewBatteryModel(batteryData)
+		if err != nil {
+			log.Printf("error parsing battery data: %s", err.Error())
+			return 0, err
+		}
+		log.Printf("Battery Power: %f", b.InstantaneousPower)
+	}
 
 	return meterACPower, nil
 }

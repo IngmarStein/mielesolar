@@ -15,6 +15,14 @@ const (
 	I_STATUS_SHUTTING_DOWN = 6 //  Shutting down
 	I_STATUS_FAULT         = 7 // Fault
 	I_STATUS_STANDBY       = 8 // Maintenance/setup
+
+	B_STATUS_OFF         = 1
+	B_STATUS_EMPTY       = 2
+	B_STATUS_DISCHARGING = 3
+	B_STATUS_CHARGING    = 4
+	B_STATUS_FULL        = 5
+	B_STATUS_HOLDING     = 6
+	B_STATUS_TESTING     = 7
 )
 
 // CommonModel holds the SolarEdge SunSpec Implementation for Common parameters
@@ -37,41 +45,45 @@ type CommonMeter struct {
 	C_Manufacturer   [32]byte
 	C_Model          [32]byte
 	C_Option         [16]byte
-	C_Version        [16]byte // Version defined in SunSpec implementation note as String(16) however is incorrect
+	C_Version        [16]byte
 	C_SerialNumber   [16]byte
 	C_DeviceAddress  uint16
+}
+
+type CommonBattery struct {
+	C_Manufacturer [16]byte
+	C_Model        [16]byte
+	C_Version      [16]byte
+	C_SerialNumber [16]byte
+}
+
+func parseModel[M any](data []byte, order binary.ByteOrder, expectedSize int) (M, error) {
+	if len(data) != expectedSize {
+		return *new(M), errors.New("improper data size")
+	}
+
+	buf := bytes.NewReader(data)
+
+	var m M
+	if err := binary.Read(buf, order, &m); err != nil {
+		return *new(M), err
+	}
+
+	return m, nil
 }
 
 // NewCommonModel takes a block of data read from the Modbus TCP connection and returns a new
 // populated struct
 func NewCommonModel(data []byte) (CommonModel, error) {
-	if len(data) != 140 {
-		return CommonModel{}, errors.New("improper data size")
-	}
-
-	buf := bytes.NewReader(data)
-
-	var cm CommonModel
-	if err := binary.Read(buf, binary.BigEndian, &cm); err != nil {
-		return CommonModel{}, err
-	}
-
-	return cm, nil
+	return parseModel[CommonModel](data, binary.BigEndian, 140)
 }
 
 func NewCommonMeter(data []byte) (CommonMeter, error) {
-	if len(data) < 100 {
-		return CommonMeter{}, errors.New("improper data size")
-	}
+	return parseModel[CommonMeter](data, binary.BigEndian, 130)
+}
 
-	buf := bytes.NewReader(data)
-
-	var cm CommonMeter
-	if err := binary.Read(buf, binary.BigEndian, &cm); err != nil {
-		return CommonMeter{}, err
-	}
-
-	return cm, nil
+func NewCommonBattery(data []byte) (CommonBattery, error) {
+	return parseModel[CommonBattery](data, binary.LittleEndian, 64)
 }
 
 // InverterModel holds the SolarEdge SunSpec Implementation for Inverter parameters
@@ -169,34 +181,49 @@ type MeterModel struct {
 	M_Energy_W_SF     int16
 }
 
+type BatteryModel struct {
+	DeviceAddress uint16
+	SunSpec_DID   uint16
+
+	RatedEnergy                     float32 // Rated Energy [Wh]
+	MaximumChargeContinuousPower    float32 // Maximum Charge Continuous Power [W]
+	MaximumDischargeContinuousPower float32 // Maximum Discharge Continuous Power [W]
+	MaximumChargePeakPower          float32 // Maximum Charge Peak Power [W]
+	MaximumDischargePeakPower       float32 // Maximum Discharge Peak Power [W]
+
+	AverageTemperature float32 // Average Temperature [°C]
+	MaximumTemperature float32 // Maximum Temperature [°C]
+
+	InstantaneousVoltage float32 // Instantaneous Voltage [V]
+	InstantaneousCurrent float32 // Instantaneous Current [A]
+	InstantaneousPower   float32 // Instantaneous Power [W]
+
+	LifetimeExportEnergyCounter uint64 // Total Exported Energy [Wh]
+	LifetimeImportEnergyCounter uint64 // Total Imported Energy [Wh]
+
+	MaximumEnergy   float32 // Maximum Energy [Wh]
+	AvailableEnergy float32 // Available Energy [Wh]
+
+	SoH float32 // State of Health (SOH) [%]
+	SoE float32 // State of Energy (SOE) [%]
+
+	Status         uint32 // Status
+	StatusInternal uint32 // Internal Status
+
+	EventLog         uint16 // Event Log
+	EventLogInternal uint16 // Internal Event Log
+}
+
 // NewInverterModel takes a block of data read from the Modbus TCP connection and returns
 // a new populated struct.
 func NewInverterModel(data []byte) (InverterModel, error) {
-	if len(data) != 80 {
-		return InverterModel{}, errors.New("improper data size")
-	}
-
-	buf := bytes.NewReader(data)
-
-	var im InverterModel
-	if err := binary.Read(buf, binary.BigEndian, &im); err != nil {
-		return InverterModel{}, err
-	}
-
-	return im, nil
+	return parseModel[InverterModel](data, binary.BigEndian, 80)
 }
 
 func NewMeterModel(data []byte) (MeterModel, error) {
-	if len(data) <= 112 {
-		return MeterModel{}, errors.New("improper data size")
-	}
+	return parseModel[MeterModel](data, binary.BigEndian, 210)
+}
 
-	buf := bytes.NewReader(data)
-
-	var mm MeterModel
-	if err := binary.Read(buf, binary.BigEndian, &mm); err != nil {
-		return MeterModel{}, err
-	}
-
-	return mm, nil
+func NewBatteryModel(data []byte) (BatteryModel, error) {
+	return parseModel[BatteryModel](data, binary.LittleEndian, 86)
 }
