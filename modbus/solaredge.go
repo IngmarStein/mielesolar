@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
+	"fmt"
+	"github.com/goburrow/modbus"
 )
 
 const (
@@ -25,10 +27,39 @@ const (
 	B_STATUS_TESTING     = 7
 )
 
-// CommonInverter holds the SolarEdge SunSpec Implementation for Common parameters
+type Model interface {
+	ModelName() string
+	NumRegisters() int
+	BaseAddress() int
+	Stride() int
+	ByteOrder() binary.ByteOrder
+}
+
+func readModel[M Model](mb modbus.Client, index int) (M, error) {
+	var m M
+
+	address := m.BaseAddress() + index*m.Stride()
+	data, err := mb.ReadHoldingRegisters(uint16(address), uint16(m.NumRegisters()))
+	if err != nil {
+		return *new(M), fmt.Errorf("error reading %s registers: %v", m.ModelName(), err)
+	}
+
+	if len(data) != m.NumRegisters()*2 {
+		return m, errors.New("improper data size")
+	}
+
+	buf := bytes.NewReader(data)
+	if err := binary.Read(buf, m.ByteOrder(), &m); err != nil {
+		return m, fmt.Errorf("error parsing %s data: %v", m.ModelName(), err)
+	}
+
+	return m, nil
+}
+
+// InverterModel holds the SolarEdge SunSpec Implementation for Inverter parameters
 // from the implementation technical note:
 // https://www.solaredge.com/sites/default/files/sunspec-implementation-technical-note.pdf
-type CommonInverter struct {
+type InverterModel struct {
 	C_SunSpec_ID     uint32
 	C_SunSpec_DID    uint16
 	C_SunSpec_Length uint16
@@ -37,59 +68,7 @@ type CommonInverter struct {
 	C_Version        [32]byte // Version defined in SunSpec implementation note as String(16) however is incorrect
 	C_SerialNumber   [32]byte
 	C_DeviceAddress  uint16
-}
 
-type CommonMeter struct {
-	C_SunSpec_DID    uint16
-	C_SunSpec_Length uint16
-	C_Manufacturer   [32]byte
-	C_Model          [32]byte
-	C_Option         [16]byte
-	C_Version        [16]byte
-	C_SerialNumber   [16]byte
-	C_DeviceAddress  uint16
-}
-
-type CommonBattery struct {
-	C_Manufacturer [32]byte
-	C_Model        [32]byte
-	C_Version      [32]byte
-	C_SerialNumber [32]byte
-}
-
-func parseModel[M any](data []byte, order binary.ByteOrder, expectedSize int) (M, error) {
-	if len(data) != expectedSize {
-		return *new(M), errors.New("improper data size")
-	}
-
-	buf := bytes.NewReader(data)
-
-	var m M
-	if err := binary.Read(buf, order, &m); err != nil {
-		return *new(M), err
-	}
-
-	return m, nil
-}
-
-// NewCommonInverter takes a block of data read from the Modbus TCP connection and returns a new
-// populated struct
-func NewCommonInverter(data []byte) (CommonInverter, error) {
-	return parseModel[CommonInverter](data, binary.BigEndian, 140)
-}
-
-func NewCommonMeter(data []byte) (CommonMeter, error) {
-	return parseModel[CommonMeter](data, binary.BigEndian, 130)
-}
-
-func NewCommonBattery(data []byte) (CommonBattery, error) {
-	return parseModel[CommonBattery](data, binary.LittleEndian, 128)
-}
-
-// InverterModel holds the SolarEdge SunSpec Implementation for Inverter parameters
-// from the implementation technical note:
-// https://www.solaredge.com/sites/default/files/sunspec-implementation-technical-note.pdf
-type InverterModel struct {
 	SunSpec_DID      uint16
 	SunSpec_Length   uint16
 	AC_Current       uint16
@@ -131,66 +110,153 @@ type InverterModel struct {
 	Status_Vendor    uint16
 }
 
-type MeterModel struct {
-	SunSpec_DID       uint16
-	SunSpec_Length    uint16
-	M_AC_Current      uint16
-	M_AC_CurrentA     uint16
-	M_AC_CurrentB     uint16
-	M_AC_CurrentC     uint16
-	M_AC_Current_SF   int16
-	M_AC_VoltageLN    uint16
-	M_AC_VoltageAN    uint16
-	M_AC_VoltageBN    uint16
-	M_AC_VoltageCN    uint16
-	M_AC_VoltageLL    uint16
-	M_AC_VoltageAB    uint16
-	M_AC_VoltageBC    uint16
-	M_AC_VoltageCA    uint16
-	M_AC_Voltage_SF   int16
-	M_AC_Frequency    uint16
-	M_AC_Frequency_SF int16
-	M_AC_Power        int16
-	M_AC_Power_A      int16
-	M_AC_Power_B      int16
-	M_AC_Power_C      int16
-	M_AC_Power_SF     int16
-	M_AC_VA           uint16
-	M_AC_VA_A         uint16
-	M_AC_VA_B         uint16
-	M_AC_VA_C         uint16
-	M_AC_VA_SF        int16
-	M_AC_VAR          uint16
-	M_AC_VAR_A        uint16
-	M_AC_VAR_B        uint16
-	M_AC_VAR_C        uint16
-	M_AC_VAR_SF       int16
-	M_AC_PF           uint16
-	M_AC_PF_A         uint16
-	M_AC_PF_B         uint16
-	M_AC_PF_C         uint16
-	M_AC_PF_SF        int16
-	M_Exported        uint32
-	M_Exported_A      uint32
-	M_Exported_B      uint32
-	M_Exported_C      uint32
-	M_Imported        uint32
-	M_Imported_A      uint32
-	M_Imported_B      uint32
-	M_Imported_C      uint32
-	M_Energy_W_SF     int16
+func (InverterModel) ModelName() string {
+	return "inverter"
 }
 
-type BatteryModel struct {
-	DeviceAddress uint16
-	SunSpec_DID   uint16
+func (InverterModel) NumRegisters() int {
+	return 110
+}
+
+func (InverterModel) Stride() int {
+	return 0
+}
+
+func (InverterModel) BaseAddress() int {
+	return 40000 // 0x9C40
+}
+
+func (InverterModel) ByteOrder() binary.ByteOrder {
+	return binary.BigEndian
+}
+
+type MeterModel struct {
+	// Common Block
+	C_SunSpec_DID    uint16
+	C_SunSpec_Length uint16
+	C_Manufacturer   [32]byte
+	C_Model          [32]byte
+	C_Option         [16]byte
+	C_Version        [16]byte
+	C_SerialNumber   [32]byte
+	C_DeviceAddress  uint16
+
+	// Identification
+	SunSpec_DID    uint16
+	SunSpec_Length uint16
+
+	// Current
+	M_AC_Current    uint16
+	M_AC_CurrentA   uint16
+	M_AC_CurrentB   uint16
+	M_AC_CurrentC   uint16
+	M_AC_Current_SF int16
+
+	// Voltage
+	M_AC_VoltageLN  uint16
+	M_AC_VoltageAN  uint16
+	M_AC_VoltageBN  uint16
+	M_AC_VoltageCN  uint16
+	M_AC_VoltageLL  uint16
+	M_AC_VoltageAB  uint16
+	M_AC_VoltageBC  uint16
+	M_AC_VoltageCA  uint16
+	M_AC_Voltage_SF int16
+
+	// Frequency
+	M_AC_Frequency    uint16
+	M_AC_Frequency_SF int16
+
+	// Power
+	M_AC_Power    int16
+	M_AC_Power_A  int16
+	M_AC_Power_B  int16
+	M_AC_Power_C  int16
+	M_AC_Power_SF int16
+	M_AC_VA       uint16
+	M_AC_VA_A     uint16
+	M_AC_VA_B     uint16
+	M_AC_VA_C     uint16
+	M_AC_VA_SF    int16
+	M_AC_VAR      uint16
+	M_AC_VAR_A    uint16
+	M_AC_VAR_B    uint16
+	M_AC_VAR_C    uint16
+	M_AC_VAR_SF   int16
+	M_AC_PF       uint16
+	M_AC_PF_A     uint16
+	M_AC_PF_B     uint16
+	M_AC_PF_C     uint16
+	M_AC_PF_SF    int16
+
+	// Accumulated Energy
+	M_Exported    uint32
+	M_Exported_A  uint32
+	M_Exported_B  uint32
+	M_Exported_C  uint32
+	M_Imported    uint32
+	M_Imported_A  uint32
+	M_Imported_B  uint32
+	M_Imported_C  uint32
+	M_Energy_W_SF int16
+}
+
+func (MeterModel) ModelName() string {
+	return "meter"
+}
+
+func (MeterModel) NumRegisters() int {
+	return 122
+}
+
+func (MeterModel) BaseAddress() int {
+	return 40121 // 0x9CB9
+}
+
+func (MeterModel) ByteOrder() binary.ByteOrder {
+	return binary.BigEndian
+}
+
+func (MeterModel) Stride() int {
+	return 174 // 0xae
+}
+
+type BatteryInfoModel struct {
+	C_Manufacturer  [32]byte
+	C_Model         [32]byte
+	C_Version       [32]byte
+	C_SerialNumber  [32]byte
+	C_DeviceAddress uint16
+	C_SunSpec_DID   uint16
 
 	RatedEnergy                     float32 // Rated Energy [Wh]
 	MaximumChargeContinuousPower    float32 // Maximum Charge Continuous Power [W]
 	MaximumDischargeContinuousPower float32 // Maximum Discharge Continuous Power [W]
 	MaximumChargePeakPower          float32 // Maximum Charge Peak Power [W]
 	MaximumDischargePeakPower       float32 // Maximum Discharge Peak Power [W]
+}
 
+func (BatteryInfoModel) ModelName() string {
+	return "battery info"
+}
+
+func (BatteryInfoModel) NumRegisters() int {
+	return 76
+}
+
+func (BatteryInfoModel) BaseAddress() int {
+	return 57600 // 0xE100
+}
+
+func (BatteryInfoModel) ByteOrder() binary.ByteOrder {
+	return binary.LittleEndian
+}
+
+func (BatteryInfoModel) Stride() int {
+	return 256 // 0x100
+}
+
+type BatteryModel struct {
 	AverageTemperature float32 // Average Temperature [°C]
 	MaximumTemperature float32 // Maximum Temperature [°C]
 
@@ -210,20 +276,44 @@ type BatteryModel struct {
 	Status         uint32 // Status
 	StatusInternal uint32 // Internal Status
 
-	EventLog         uint16 // Event Log
-	EventLogInternal uint16 // Internal Event Log
+	//EventLog         uint16 // 0xe18a - Event Log
+	//_                [12]byte
+	//EventLogInternal uint16 // 0xe192 - Internal Event Log
+	//_                [12]byte
 }
 
-// NewInverterModel takes a block of data read from the Modbus TCP connection and returns
-// a new populated struct.
-func NewInverterModel(data []byte) (InverterModel, error) {
-	return parseModel[InverterModel](data, binary.BigEndian, 80)
+func (BatteryModel) ModelName() string {
+	return "battery"
 }
 
-func NewMeterModel(data []byte) (MeterModel, error) {
-	return parseModel[MeterModel](data, binary.BigEndian, 210)
+func (BatteryModel) NumRegisters() int {
+	return 30
 }
 
-func NewBatteryModel(data []byte) (BatteryModel, error) {
-	return parseModel[BatteryModel](data, binary.LittleEndian, 86)
+func (BatteryModel) BaseAddress() int {
+	return 57708 // 0xE16C
+}
+
+func (BatteryModel) ByteOrder() binary.ByteOrder {
+	return binary.LittleEndian
+}
+
+func (BatteryModel) Stride() int {
+	return 256 // 0x100
+}
+
+func ReadInverter(mb modbus.Client) (InverterModel, error) {
+	return readModel[InverterModel](mb, 0)
+}
+
+func ReadMeter(mb modbus.Client, index int) (MeterModel, error) {
+	return readModel[MeterModel](mb, index)
+}
+
+func ReadBatteryInfo(mb modbus.Client, index int) (BatteryInfoModel, error) {
+	return readModel[BatteryInfoModel](mb, index)
+}
+
+func ReadBattery(mb modbus.Client, index int) (BatteryModel, error) {
+	return readModel[BatteryModel](mb, index)
 }

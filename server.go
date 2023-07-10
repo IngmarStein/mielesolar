@@ -75,71 +75,45 @@ func (s *server) serve() {
 	}
 }
 
-const inverterInfoBaseAddress = 40000 // 0x9C40
-const inverterDataBaseAddress = 40069 // 0x9C85
-const meterInfoBaseAddress = 40121    // 0x9CB9
-const meterDataBaseAddress = 40188    // 0x9CFC
-const batteryInfoBaseAddress = 57600  // 0xE100
-const batteryDataBaseAddress = 57664  // 0xE140
-
 func (s *server) printSolarEdgeInfo() {
 	// Collect and log common inverter data
-	inverterData, err := s.mb.ReadHoldingRegisters(inverterInfoBaseAddress, 70)
+	inverter, err := solaredge.ReadInverter(s.mb)
 	if err != nil {
-		log.Fatalf("error reading inverter registers: %s", err.Error())
+		log.Fatalf("%v", err)
 	}
 
-	cm, err := solaredge.NewCommonInverter(inverterData)
-	if err != nil {
-		log.Fatalf("error parsing inverter data: %s", err.Error())
-	}
+	log.Printf("Inverter Model: %s", inverter.C_Model)
+	log.Printf("Inverter Serial: %s", inverter.C_SerialNumber)
+	log.Printf("Inverter Version: %s", inverter.C_Version)
 
-	log.Printf("Inverter Model: %s", cm.C_Model)
-	log.Printf("Inverter Serial: %s", cm.C_SerialNumber)
-	log.Printf("Inverter Version: %s", cm.C_Version)
-
-	meterData, err := s.mb.ReadHoldingRegisters(meterInfoBaseAddress, 65)
+	meter, err := solaredge.ReadMeter(s.mb, 0)
 	if err != nil {
 		log.Fatalf("error reading meter registers: %s", err.Error())
 	}
 
-	mm, err := solaredge.NewCommonMeter(meterData)
-	if err != nil {
-		log.Fatalf("error parsing meter registers: %s", err.Error())
-	}
-	log.Printf("Meter Manufacturer: %s", mm.C_Manufacturer)
-	log.Printf("Meter Model: %s", mm.C_Model)
-	log.Printf("Meter Option: %s", mm.C_Option)
-	log.Printf("Meter Version: %s", mm.C_Version)
-	log.Printf("Meter Serial: %s", mm.C_SerialNumber)
+	log.Printf("Meter Manufacturer: %s", meter.C_Manufacturer)
+	log.Printf("Meter Model: %s", meter.C_Model)
+	log.Printf("Meter Option: %s", meter.C_Option)
+	log.Printf("Meter Version: %s", meter.C_Version)
+	log.Printf("Meter Serial: %s", meter.C_SerialNumber)
 
-	batteryData, err := s.mb.ReadHoldingRegisters(batteryInfoBaseAddress, 64)
+	battery, err := solaredge.ReadBatteryInfo(s.mb, 0)
 	if err != nil {
 		log.Fatalf("error reading battery registers: %s", err.Error())
 	}
 
-	bm, err := solaredge.NewCommonBattery(batteryData)
-	if err != nil {
-		log.Fatalf("error parsing battery registers: %s", err.Error())
-	}
-	log.Printf("Battery Manufacturer: %s", bm.C_Manufacturer)
-	log.Printf("Battery Model: %s", bm.C_Model)
-	log.Printf("Battery Version: %s", bm.C_Version)
-	log.Printf("Battery Serial: %s", bm.C_SerialNumber)
+	log.Printf("Battery Manufacturer: %s", battery.C_Manufacturer)
+	log.Printf("Battery Model: %s", battery.C_Model)
+	log.Printf("Battery Version: %s", battery.C_Version)
+	log.Printf("Battery Serial: %s", battery.C_SerialNumber)
 
-	s.hasBattery = bm.C_Manufacturer[0] != 0
+	s.hasBattery = battery.C_Manufacturer[0] != 0
 }
 
 func (s *server) currentPowerExport() (float64, error) {
-	inverterData, err := s.mb.ReadHoldingRegisters(inverterDataBaseAddress, 40)
+	inverter, err := solaredge.ReadInverter(s.mb)
 	if err != nil {
 		log.Printf("error reading inverter registers: %s", err.Error())
-		return 0, err
-	}
-
-	inverter, err := solaredge.NewInverterModel(inverterData)
-	if err != nil {
-		log.Printf("error parsing data: %s", err.Error())
 		return 0, err
 	}
 
@@ -153,33 +127,23 @@ func (s *server) currentPowerExport() (float64, error) {
 	inverterDCPower := float64(inverter.DC_Power) * math.Pow(10.0, float64(inverter.DC_Power_SF))
 	log.Printf("Inverter DC Power: %f", inverterDCPower)
 
-	meterData, err := s.mb.ReadHoldingRegisters(meterDataBaseAddress, 105)
+	meter, err := solaredge.ReadMeter(s.mb, 0)
 	if err != nil {
 		log.Printf("error reading meter data: %s", err.Error())
 		return 0, err
 	}
 
-	mt, err := solaredge.NewMeterModel(meterData)
-	if err != nil {
-		log.Printf("error parsing meter data: %s", err.Error())
-		return 0, err
-	}
-	meterACPower := float64(mt.M_AC_Power) * math.Pow(10.0, float64(mt.M_AC_Power_SF))
+	meterACPower := float64(meter.M_AC_Power) * math.Pow(10.0, float64(meter.M_AC_Power_SF))
 	log.Printf("Meter AC Power: %f", meterACPower)
 
 	if s.hasBattery {
-		batteryData, err := s.mb.ReadHoldingRegisters(batteryDataBaseAddress, 43)
+		battery, err := solaredge.ReadBattery(s.mb, 0)
 		if err != nil {
-			log.Printf("error reading battery data: %s", err.Error())
+			log.Printf("error reading battery data: %v", err)
 			return 0, err
 		}
 
-		b, err := solaredge.NewBatteryModel(batteryData)
-		if err != nil {
-			log.Printf("error parsing battery data: %s", err.Error())
-			return 0, err
-		}
-		log.Printf("Battery Power: %f", b.InstantaneousPower)
+		log.Printf("Battery Power: %f", battery.InstantaneousPower)
 	}
 
 	return meterACPower, nil
