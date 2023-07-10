@@ -150,6 +150,8 @@ func (s *server) currentPowerExport() (float64, error) {
 
 	inverterACPower := float64(inverter.AC_Power) * math.Pow(10.0, float64(inverter.AC_Power_SF))
 	log.Printf("Inverter AC Power: %f", inverterACPower)
+	inverterDCPower := float64(inverter.DC_Power) * math.Pow(10.0, float64(inverter.DC_Power_SF))
+	log.Printf("Inverter DC Power: %f", inverterDCPower)
 
 	meterData, err := s.mb.ReadHoldingRegisters(meterDataBaseAddress, 105)
 	if err != nil {
