@@ -25,10 +25,10 @@ const (
 	B_STATUS_TESTING     = 7
 )
 
-// CommonModel holds the SolarEdge SunSpec Implementation for Common parameters
+// CommonInverter holds the SolarEdge SunSpec Implementation for Common parameters
 // from the implementation technical note:
 // https://www.solaredge.com/sites/default/files/sunspec-implementation-technical-note.pdf
-type CommonModel struct {
+type CommonInverter struct {
 	C_SunSpec_ID     uint32
 	C_SunSpec_DID    uint16
 	C_SunSpec_Length uint16
@@ -51,10 +51,10 @@ type CommonMeter struct {
 }
 
 type CommonBattery struct {
-	C_Manufacturer [16]byte
-	C_Model        [16]byte
-	C_Version      [16]byte
-	C_SerialNumber [16]byte
+	C_Manufacturer [32]byte
+	C_Model        [32]byte
+	C_Version      [32]byte
+	C_SerialNumber [32]byte
 }
 
 func parseModel[M any](data []byte, order binary.ByteOrder, expectedSize int) (M, error) {
@@ -72,10 +72,10 @@ func parseModel[M any](data []byte, order binary.ByteOrder, expectedSize int) (M
 	return m, nil
 }
 
-// NewCommonModel takes a block of data read from the Modbus TCP connection and returns a new
+// NewCommonInverter takes a block of data read from the Modbus TCP connection and returns a new
 // populated struct
-func NewCommonModel(data []byte) (CommonModel, error) {
-	return parseModel[CommonModel](data, binary.BigEndian, 140)
+func NewCommonInverter(data []byte) (CommonInverter, error) {
+	return parseModel[CommonInverter](data, binary.BigEndian, 140)
 }
 
 func NewCommonMeter(data []byte) (CommonMeter, error) {
@@ -83,7 +83,7 @@ func NewCommonMeter(data []byte) (CommonMeter, error) {
 }
 
 func NewCommonBattery(data []byte) (CommonBattery, error) {
-	return parseModel[CommonBattery](data, binary.LittleEndian, 64)
+	return parseModel[CommonBattery](data, binary.LittleEndian, 128)
 }
 
 // InverterModel holds the SolarEdge SunSpec Implementation for Inverter parameters
