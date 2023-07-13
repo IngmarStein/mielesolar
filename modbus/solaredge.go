@@ -3,9 +3,8 @@ package solaredge
 import (
 	"bytes"
 	"encoding/binary"
-	"errors"
 	"fmt"
-	"github.com/goburrow/modbus"
+	"github.com/simonvetter/modbus"
 )
 
 const (
@@ -32,24 +31,23 @@ type Model interface {
 	NumRegisters() int
 	BaseAddress() int
 	Stride() int
-	ByteOrder() binary.ByteOrder
 }
 
-func readModel[M Model](mb modbus.Client, index int) (M, error) {
+func readModel[M Model](mb *modbus.ModbusClient, index int) (M, error) {
 	var m M
 
 	address := m.BaseAddress() + index*m.Stride()
-	data, err := mb.ReadHoldingRegisters(uint16(address), uint16(m.NumRegisters()))
+	data, err := mb.ReadBytes(uint16(address), uint16(m.NumRegisters()*2), modbus.HOLDING_REGISTER)
 	if err != nil {
 		return *new(M), fmt.Errorf("error reading %s registers: %v", m.ModelName(), err)
 	}
 
 	if len(data) != m.NumRegisters()*2 {
-		return m, errors.New("improper data size")
+		return m, fmt.Errorf("improper data size: expected %d but got %d", m.NumRegisters()*2, len(data))
 	}
 
 	buf := bytes.NewReader(data)
-	if err := binary.Read(buf, m.ByteOrder(), &m); err != nil {
+	if err := binary.Read(buf, LittleBigEndian, &m); err != nil {
 		return m, fmt.Errorf("error parsing %s data: %v", m.ModelName(), err)
 	}
 
@@ -124,10 +122,6 @@ func (InverterModel) Stride() int {
 
 func (InverterModel) BaseAddress() int {
 	return 40000 // 0x9C40
-}
-
-func (InverterModel) ByteOrder() binary.ByteOrder {
-	return binary.BigEndian
 }
 
 type MeterModel struct {
@@ -213,10 +207,6 @@ func (MeterModel) BaseAddress() int {
 	return 40121 // 0x9CB9
 }
 
-func (MeterModel) ByteOrder() binary.ByteOrder {
-	return binary.BigEndian
-}
-
 func (MeterModel) Stride() int {
 	return 174 // 0xae
 }
@@ -229,12 +219,52 @@ type BatteryInfoModel struct {
 	C_DeviceAddress uint16
 	C_SunSpec_DID   uint16
 
-	RatedEnergy                     float32 // Rated Energy [Wh]
+	RatedEnergy                     uint32  // Rated Energy [Wh]
 	MaximumChargeContinuousPower    float32 // Maximum Charge Continuous Power [W]
 	MaximumDischargeContinuousPower float32 // Maximum Discharge Continuous Power [W]
 	MaximumChargePeakPower          float32 // Maximum Charge Peak Power [W]
 	MaximumDischargePeakPower       float32 // Maximum Discharge Peak Power [W]
 }
+
+// byte order = big endian, word order = little endian
+type littleBigEndian struct{}
+
+func (littleBigEndian) Uint16(b []byte) uint16 {
+	return binary.BigEndian.Uint16(b)
+}
+
+func (littleBigEndian) PutUint16(b []byte, v uint16) {
+	binary.BigEndian.PutUint16(b, v)
+}
+
+func (littleBigEndian) Uint32(b []byte) uint32 {
+	_ = b[3] // bounds check hint to compiler; see golang.org/issue/14808
+	return binary.BigEndian.Uint32([]byte{b[2], b[3], b[0], b[1]})
+}
+
+func (littleBigEndian) PutUint32(b []byte, v uint32) {
+	_ = b[3] // early bounds check to guarantee safety of writes below
+
+	binary.BigEndian.PutUint32(b, v)
+	// swap words
+	b[0], b[1], b[2], b[3] = b[2], b[3], b[0], b[1]
+}
+
+func (littleBigEndian) Uint64(b []byte) uint64 {
+	_ = b[7] // bounds check hint to compiler; see golang.org/issue/14808
+	return binary.BigEndian.Uint64([]byte{b[6], b[7], b[4], b[5], b[2], b[3], b[0], b[1]})
+}
+
+func (littleBigEndian) PutUint64(b []byte, v uint64) {
+	_ = b[7] // early bounds check to guarantee safety of writes below
+	binary.BigEndian.PutUint64(b, v)
+	// swap words
+	b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7] = b[6], b[7], b[4], b[5], b[2], b[3], b[0], b[1]
+}
+
+func (littleBigEndian) String() string { return "LittleBigEndian" }
+
+var LittleBigEndian littleBigEndian
 
 func (BatteryInfoModel) ModelName() string {
 	return "battery info"
@@ -246,10 +276,6 @@ func (BatteryInfoModel) NumRegisters() int {
 
 func (BatteryInfoModel) BaseAddress() int {
 	return 57600 // 0xE100
-}
-
-func (BatteryInfoModel) ByteOrder() binary.ByteOrder {
-	return binary.LittleEndian
 }
 
 func (BatteryInfoModel) Stride() int {
@@ -294,26 +320,22 @@ func (BatteryModel) BaseAddress() int {
 	return 57708 // 0xE16C
 }
 
-func (BatteryModel) ByteOrder() binary.ByteOrder {
-	return binary.LittleEndian
-}
-
 func (BatteryModel) Stride() int {
 	return 256 // 0x100
 }
 
-func ReadInverter(mb modbus.Client) (InverterModel, error) {
+func ReadInverter(mb *modbus.ModbusClient) (InverterModel, error) {
 	return readModel[InverterModel](mb, 0)
 }
 
-func ReadMeter(mb modbus.Client, index int) (MeterModel, error) {
+func ReadMeter(mb *modbus.ModbusClient, index int) (MeterModel, error) {
 	return readModel[MeterModel](mb, index)
 }
 
-func ReadBatteryInfo(mb modbus.Client, index int) (BatteryInfoModel, error) {
+func ReadBatteryInfo(mb *modbus.ModbusClient, index int) (BatteryInfoModel, error) {
 	return readModel[BatteryInfoModel](mb, index)
 }
 
-func ReadBattery(mb modbus.Client, index int) (BatteryModel, error) {
+func ReadBattery(mb *modbus.ModbusClient, index int) (BatteryModel, error) {
 	return readModel[BatteryModel](mb, index)
 }

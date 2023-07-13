@@ -5,9 +5,9 @@ import (
 	"math"
 	"time"
 
-	"github.com/goburrow/modbus"
 	"github.com/ingmarstein/miele-go/miele"
 	solaredge "github.com/ingmarstein/mielesolar/modbus"
+	"github.com/simonvetter/modbus"
 )
 
 type modeEnum int
@@ -20,8 +20,7 @@ const (
 
 type server struct {
 	mc         *miele.Client
-	mb         modbus.Client
-	handler    *modbus.TCPClientHandler
+	mb         *modbus.ModbusClient
 	devices    []device
 	mode       modeEnum
 	autoPower  int
@@ -32,7 +31,6 @@ type server struct {
 func newServer(modbusAddress string, mode modeEnum, autoPower int, devices []device, verbose bool, mieleClient *miele.Client) *server {
 	srv := server{
 		mc:        mieleClient,
-		handler:   modbus.NewTCPClientHandler(modbusAddress),
 		devices:   devices,
 		mode:      mode,
 		autoPower: autoPower,
@@ -40,21 +38,30 @@ func newServer(modbusAddress string, mode modeEnum, autoPower int, devices []dev
 	}
 
 	srv.mc.Verbose = verbose
-	srv.handler.Timeout = 10 * time.Second
-	srv.handler.SlaveId = 0x01
-	srv.mb = modbus.NewClient(srv.handler)
 
-	if err := srv.handler.Connect(); err != nil {
-		log.Fatalf("error connecting to inverter: %s", err.Error())
+	var err error
+	srv.mb, err = modbus.NewClient(&modbus.ClientConfiguration{
+		URL:     "tcp://" + modbusAddress,
+		Timeout: 10 * time.Second,
+	})
+	if err != nil {
+		log.Fatalf("error creating client: %v", err)
+	}
+
+	if err := srv.mb.Open(); err != nil {
+		log.Fatalf("error connecting to inverter: %v", err)
+	}
+
+	if err := srv.mb.SetUnitId(0x01); err != nil {
+		log.Fatalf("error setting unit ID: %v", err)
 	}
 
 	return &srv
 }
 
 func (s *server) close() {
-	err := s.handler.Close()
-	if err != nil {
-		log.Printf("error closing handler: %v\n", err)
+	if err := s.mb.Close(); err != nil {
+		log.Printf("error closing modbus client: %v\n", err)
 	}
 }
 
@@ -65,9 +72,9 @@ func (s *server) serve() {
 		<-ticker.C
 		if err := s.refresh(); err != nil {
 			log.Printf("attempting to reconnect")
-			_ = s.handler.Close()
+			_ = s.mb.Close()
 			time.Sleep(2 * time.Second)
-			err = s.handler.Connect()
+			err = s.mb.Open()
 			if err != nil {
 				log.Printf("error reconnecting: %v\n", err)
 			}
@@ -106,6 +113,11 @@ func (s *server) printSolarEdgeInfo() {
 	log.Printf("Battery Model: %s", battery.C_Model)
 	log.Printf("Battery Version: %s", battery.C_Version)
 	log.Printf("Battery Serial: %s", battery.C_SerialNumber)
+	log.Printf("Battery rated energy: %02x W", battery.RatedEnergy)
+	log.Printf("Battery maximum charge continuous power: %.0f W", battery.MaximumChargeContinuousPower)
+	log.Printf("Battery maximum discharge continuous power: %.0f W", battery.MaximumDischargeContinuousPower)
+	log.Printf("Battery maximum charge peak power: %.0f W", battery.MaximumChargePeakPower)
+	log.Printf("Battery maximum discharge peak power: %.0f W", battery.MaximumDischargePeakPower)
 
 	s.hasBattery = battery.C_Manufacturer[0] != 0
 }
