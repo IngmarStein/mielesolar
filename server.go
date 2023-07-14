@@ -113,13 +113,16 @@ func (s *server) printSolarEdgeInfo() {
 	log.Printf("Battery Model: %s", battery.C_Model)
 	log.Printf("Battery Version: %s", battery.C_Version)
 	log.Printf("Battery Serial: %s", battery.C_SerialNumber)
-	log.Printf("Battery rated energy: %02x W", battery.RatedEnergy)
-	log.Printf("Battery maximum charge continuous power: %.0f W", battery.MaximumChargeContinuousPower)
-	log.Printf("Battery maximum discharge continuous power: %.0f W", battery.MaximumDischargeContinuousPower)
-	log.Printf("Battery maximum charge peak power: %.0f W", battery.MaximumChargePeakPower)
-	log.Printf("Battery maximum discharge peak power: %.0f W", battery.MaximumDischargePeakPower)
 
 	s.hasBattery = battery.C_Manufacturer[0] != 0
+
+	if s.hasBattery {
+		log.Printf("Battery rated energy: %.0f W", battery.RatedEnergy)
+		log.Printf("Battery maximum charge continuous power: %.0f W", battery.MaximumChargeContinuousPower)
+		log.Printf("Battery maximum discharge continuous power: %.0f W", battery.MaximumDischargeContinuousPower)
+		log.Printf("Battery maximum charge peak power: %.0f W", battery.MaximumChargePeakPower)
+		log.Printf("Battery maximum discharge peak power: %.0f W", battery.MaximumDischargePeakPower)
+	}
 }
 
 func (s *server) currentPowerExport() (float64, error) {
@@ -134,10 +137,13 @@ func (s *server) currentPowerExport() (float64, error) {
 		//return 0, nil
 	}
 
-	inverterACPower := float64(inverter.AC_Power) * math.Pow(10.0, float64(inverter.AC_Power_SF))
-	log.Printf("Inverter AC Power: %f", inverterACPower)
+	// inverter DC power = solar production
 	inverterDCPower := float64(inverter.DC_Power) * math.Pow(10.0, float64(inverter.DC_Power_SF))
 	log.Printf("Inverter DC Power: %f", inverterDCPower)
+
+	// inverter AC power = production after conversion to AC
+	inverterACPower := float64(inverter.AC_Power) * math.Pow(10.0, float64(inverter.AC_Power_SF))
+	log.Printf("Inverter AC Power: %f", inverterACPower)
 
 	meter, err := solaredge.ReadMeter(s.mb, 0)
 	if err != nil {
@@ -145,9 +151,16 @@ func (s *server) currentPowerExport() (float64, error) {
 		return 0, err
 	}
 
+	// meter AC power = balance of production and consumption
+	// positive values indicate a surplus -> export to grid
+	// negative values indicate a deficit -> import from grid
 	meterACPower := float64(meter.M_AC_Power) * math.Pow(10.0, float64(meter.M_AC_Power_SF))
 	log.Printf("Meter AC Power: %f", meterACPower)
 
+	powerExport := meterACPower
+
+	// If the system has a battery installed, consider the amount of energy flowing into it
+	// as surplus. That is, prioritize Miele appliances higher than the battery.
 	if s.hasBattery {
 		battery, err := solaredge.ReadBattery(s.mb, 0)
 		if err != nil {
@@ -156,9 +169,11 @@ func (s *server) currentPowerExport() (float64, error) {
 		}
 
 		log.Printf("Battery Power: %f", battery.InstantaneousPower)
+
+		powerExport += float64(battery.InstantaneousPower)
 	}
 
-	return meterACPower, nil
+	return powerExport, nil
 }
 
 func (s *server) refresh() error {

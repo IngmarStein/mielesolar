@@ -219,7 +219,7 @@ type BatteryInfoModel struct {
 	C_DeviceAddress uint16
 	C_SunSpec_DID   uint16
 
-	RatedEnergy                     uint32  // Rated Energy [Wh]
+	RatedEnergy                     float32 // Rated Energy [Wh]
 	MaximumChargeContinuousPower    float32 // Maximum Charge Continuous Power [W]
 	MaximumDischargeContinuousPower float32 // Maximum Discharge Continuous Power [W]
 	MaximumChargePeakPower          float32 // Maximum Charge Peak Power [W]
