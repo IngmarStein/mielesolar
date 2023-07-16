@@ -26,15 +26,19 @@ type server struct {
 	autoPower  int
 	verbose    bool
 	hasBattery bool
+	startDelay time.Duration
+	nextStart  time.Time
 }
 
-func newServer(modbusAddress string, mode modeEnum, autoPower int, devices []device, verbose bool, mieleClient *miele.Client) *server {
+func newServer(modbusAddress string, mode modeEnum, autoPower int, devices []device, verbose bool, mieleClient *miele.Client, startDelay time.Duration) *server {
 	srv := server{
-		mc:        mieleClient,
-		devices:   devices,
-		mode:      mode,
-		autoPower: autoPower,
-		verbose:   verbose,
+		mc:         mieleClient,
+		devices:    devices,
+		mode:       mode,
+		autoPower:  autoPower,
+		verbose:    verbose,
+		startDelay: startDelay,
+		nextStart:  time.Now(),
 	}
 
 	srv.mc.Verbose = verbose
@@ -270,6 +274,10 @@ func (s *server) consumePower(available float64) {
 		if !device.waiting || device.Power > available {
 			continue
 		}
+		if time.Now().Before(s.nextStart) {
+			log.Printf("delaying start of device %s (%s). Next start after %v", device.Name, device.ID, s.nextStart.Format(time.RFC1123))
+			continue
+		}
 		log.Printf("starting device %s (%s)", device.Name, device.ID)
 		err := s.mc.DeviceAction(device.ID, miele.DeviceActionRequest{
 			ProcessAction: miele.ACTION_START,
@@ -281,6 +289,7 @@ func (s *server) consumePower(available float64) {
 		if s.mode != AutoAllMode {
 			available -= device.Power
 		}
+		s.nextStart = time.Now().Add(s.startDelay)
 		log.Printf("started device %s (%s), remaining power: %f", device.Name, device.ID, available)
 		device.waiting = false
 	}

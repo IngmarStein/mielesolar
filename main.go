@@ -24,6 +24,7 @@ var vg = flag.String("vg", "de-CH", "Country selector")
 var autoPower = flag.Int("auto", 0, "Automatically start waiting devices if a minimum amount of power is available")
 var autoMode = flag.String("auto-mode", "single", "How many devices to start when the amount of power specified by -auto is available. Valid values: \"single\" or \"all\"")
 var verbose = flag.Bool("verbose", false, "Verbose mode")
+var startDelay = flag.Int("delay", defaultInt("DELAY", 300), "Delay in seconds between the start of devices")
 
 func defaultString(key, value string) string {
 	if v := os.Getenv(key); v != "" {
@@ -104,7 +105,14 @@ func main() {
 
 	client := miele.NewClientWithAuth(*clientID, *clientSecret, *vg, *username, *password)
 
-	srv := newServer(fmt.Sprintf("%s:%d", *inverterAddress, *inverterPort), mode, *autoPower, devices, *verbose, client)
+	srv := newServer(
+		fmt.Sprintf("%s:%d", *inverterAddress, *inverterPort),
+		mode,
+		*autoPower,
+		devices,
+		*verbose,
+		client,
+		time.Duration(*startDelay)*time.Second)
 	srv.printSolarEdgeInfo()
 
 	defer srv.close()
