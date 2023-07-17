@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/ingmarstein/miele-go/miele"
 	"log"
 	"os"
 	"strconv"
 	"time"
 	_ "time/tzdata"
+
+	"github.com/ingmarstein/miele-go/miele"
 )
 
 var inverterAddress = flag.String("inverter", defaultString("INVERTER_ADDRESS", "192.168.188.167"), "Inverter address or IP")
@@ -25,6 +26,9 @@ var autoPower = flag.Int("auto", 0, "Automatically start waiting devices if a mi
 var autoMode = flag.String("auto-mode", "single", "How many devices to start when the amount of power specified by -auto is available. Valid values: \"single\" or \"all\"")
 var verbose = flag.Bool("verbose", false, "Verbose mode")
 var startDelay = flag.Int("delay", defaultInt("DELAY", 300), "Delay in seconds between the start of devices")
+var solarManagerUsername = flag.String("solarmanager-username", os.Getenv("SOLARMANAGER_USERNAME"), "SolarManager username")
+var solarManagerPassword = flag.String("solarmanager-password", os.Getenv("SOLARMANAGER_PASSWORD"), "SolarManager password")
+var solarManagerID = flag.String("solarmanager-id", os.Getenv("SOLARMANAGER_ID"), "SolarManager ID")
 
 func defaultString(key, value string) string {
 	if v := os.Getenv(key); v != "" {
@@ -80,6 +84,17 @@ func main() {
 		os.Exit(1)
 	}
 
+	if len(*inverterAddress) == 0 && len(*solarManagerUsername) == 0 {
+		log.Println("Either -inverter or -solarmanager-username must be specified")
+		flag.Usage()
+		os.Exit(1)
+	}
+	if len(*inverterAddress) > 0 && len(*solarManagerUsername) > 0 {
+		log.Println("-inverter and -solarmanager-username are mutually exclusive")
+		flag.Usage()
+		os.Exit(1)
+	}
+
 	var mode modeEnum
 	switch *autoMode {
 	case "single":
@@ -103,17 +118,28 @@ func main() {
 		}
 	}
 
-	client := miele.NewClientWithAuth(*clientID, *clientSecret, *vg, *username, *password)
+	mieleClient := miele.NewClientWithAuth(*clientID, *clientSecret, *vg, *username, *password)
+
+	var pp PvProvider
+	if len(*inverterAddress) > 0 {
+		var err error
+		pp, err = newModbusProvider(fmt.Sprintf("%s:%d", *inverterAddress, *inverterPort))
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		pp = newSolarManagerProvider(*solarManagerUsername, *solarManagerPassword, *solarManagerID)
+	}
 
 	srv := newServer(
-		fmt.Sprintf("%s:%d", *inverterAddress, *inverterPort),
 		mode,
 		*autoPower,
 		devices,
 		*verbose,
-		client,
+		mieleClient,
+		pp,
 		time.Duration(*startDelay)*time.Second)
-	srv.printSolarEdgeInfo()
+	srv.init()
 
 	defer srv.close()
 	srv.serve()

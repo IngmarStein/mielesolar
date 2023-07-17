@@ -27,4 +27,5 @@ docker-build: $(BINARY_NAME) Dockerfile
 update:
 	go get -u
 	GONOPROXY=github.com/ingmarstein/miele-go go get -u github.com/ingmarstein/miele-go@latest
+	GONOPROXY=github.com/ingmarstein/solarmanager-go go get -u github.com/ingmarstein/solarmanager-go@latest
 	go mod tidy

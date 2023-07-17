@@ -11,6 +11,8 @@ github.com/google/go-querystring v1.1.0 h1:AnCroh3fv4ZBgVIf1Iwtovgjaw/GiKJo8M8yD
 github.com/google/go-querystring v1.1.0/go.mod h1:Kcdr2DB4koayq7X8pmAG4sNG59So17icRSOU623lUBU=
 github.com/ingmarstein/miele-go v0.0.0-20230707191703-0960b3d0507d h1:p3OhQ1Q+OQlSlwMuNsIoiskU859BZepIX9zx+tTepGE=
 github.com/ingmarstein/miele-go v0.0.0-20230707191703-0960b3d0507d/go.mod h1:1IgXxclxrBV/SRykJ48sOWfsHmfPM7C4FYaFV7DBWyw=
+github.com/ingmarstein/solarmanager-go v0.0.0-20230717065550-f29a5252a784 h1:RqtbssQfaMJnHeFEB/wTnPVcVd08QITpk8LPIb+4m80=
+github.com/ingmarstein/solarmanager-go v0.0.0-20230717065550-f29a5252a784/go.mod h1:t34u1WQjXXAUKDiYcFbi+smNm89qdoutMz/tJLfcnmo=
 github.com/simonvetter/modbus v1.6.0 h1:RDHJevtc7LDIVoHAbhDun8fy+QwnGe+ZU+sLm9ZZzjc=
 github.com/simonvetter/modbus v1.6.0/go.mod h1:hh90ZaTaPLcK2REj6/fpTbiV0J6S7GWmd8q+GVRObPw=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
