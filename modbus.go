@@ -43,7 +43,7 @@ func (mp *modbusProvider) Open() error {
 
 func (mp *modbusProvider) Close() error {
 	if err := mp.c.Close(); err != nil {
-		return fmt.Errorf("error closing modbus client: %v\n", err)
+		return fmt.Errorf("error closing modbus client: %v", err)
 	}
 
 	return nil
