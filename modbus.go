@@ -10,12 +10,15 @@ import (
 )
 
 type modbusProvider struct {
-	c          *modbus.ModbusClient
-	hasBattery bool
+	c             *modbus.ModbusClient
+	hasBattery    bool
+	inverterIndex int
 }
 
-func newModbusProvider(address string) (*modbusProvider, error) {
-	var p modbusProvider
+func newModbusProvider(address string, index int) (*modbusProvider, error) {
+	p := modbusProvider{
+		inverterIndex: index,
+	}
 
 	var err error
 	p.c, err = modbus.NewClient(&modbus.ClientConfiguration{
@@ -51,7 +54,7 @@ func (mp *modbusProvider) Close() error {
 
 func (mp *modbusProvider) Init() {
 	// Collect and log common inverter data
-	inverter, err := solaredge.ReadInverter(mp.c)
+	inverter, err := solaredge.ReadInverter(mp.c, mp.inverterIndex)
 	if err != nil {
 		log.Fatalf("%v", err)
 	}
@@ -93,7 +96,7 @@ func (mp *modbusProvider) Init() {
 }
 
 func (mp *modbusProvider) CurrentPowerExport() (float64, error) {
-	inverter, err := solaredge.ReadInverter(mp.c)
+	inverter, err := solaredge.ReadInverter(mp.c, mp.inverterIndex)
 	if err != nil {
 		log.Printf("error reading inverter registers: %s", err.Error())
 		return 0, err
