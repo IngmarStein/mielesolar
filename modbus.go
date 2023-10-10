@@ -59,30 +59,30 @@ func (mp *modbusProvider) Init() {
 		log.Fatalf("%v", err)
 	}
 
-	log.Printf("Inverter Model: %s", inverter.C_Model)
-	log.Printf("Inverter Serial: %s", inverter.C_SerialNumber)
-	log.Printf("Inverter Version: %s", inverter.C_Version)
+	log.Printf("Inverter Model: %s", inverter.Model())
+	log.Printf("Inverter Serial: %s", inverter.SerialNumber())
+	log.Printf("Inverter Version: %s", inverter.Version())
 
 	meter, err := solaredge.ReadMeter(mp.c, 0)
 	if err != nil {
 		log.Fatalf("error reading meter registers: %s", err.Error())
 	}
 
-	log.Printf("Meter Manufacturer: %s", meter.C_Manufacturer)
-	log.Printf("Meter Model: %s", meter.C_Model)
-	log.Printf("Meter Option: %s", meter.C_Option)
-	log.Printf("Meter Version: %s", meter.C_Version)
-	log.Printf("Meter Serial: %s", meter.C_SerialNumber)
+	log.Printf("Meter Manufacturer: %s", meter.Manufacturer())
+	log.Printf("Meter Model: %s", meter.Model())
+	log.Printf("Meter Option: %s", meter.Option())
+	log.Printf("Meter Version: %s", meter.Version())
+	log.Printf("Meter Serial: %s", meter.SerialNumber())
 
 	battery, err := solaredge.ReadBatteryInfo(mp.c, 0)
 	if err != nil {
 		log.Fatalf("error reading battery registers: %s", err.Error())
 	}
 
-	log.Printf("Battery Manufacturer: %s", battery.C_Manufacturer)
-	log.Printf("Battery Model: %s", battery.C_Model)
-	log.Printf("Battery Version: %s", battery.C_Version)
-	log.Printf("Battery Serial: %s", battery.C_SerialNumber)
+	log.Printf("Battery Manufacturer: %s", battery.Manufacturer())
+	log.Printf("Battery Model: %s", battery.Model())
+	log.Printf("Battery Version: %s", battery.Version())
+	log.Printf("Battery Serial: %s", battery.SerialNumber())
 
 	mp.hasBattery = battery.C_Manufacturer[0] != 0
 

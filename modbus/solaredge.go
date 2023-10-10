@@ -26,6 +26,14 @@ const (
 	B_STATUS_TESTING     = 7
 )
 
+func bytesToString(b []byte) string {
+	n := bytes.IndexByte(b, 0)
+	if n == -1 {
+		return string(b)
+	}
+	return string(b[:n])
+}
+
 type Model interface {
 	ModelName() string
 	NumRegisters() int
@@ -124,6 +132,22 @@ func (InverterModel) BaseAddress() int {
 	return 40000 // 0x9C40
 }
 
+func (im InverterModel) Manufacturer() string {
+	return bytesToString(im.C_Manufacturer[:])
+}
+
+func (im InverterModel) Model() string {
+	return bytesToString(im.C_Model[:])
+}
+
+func (im InverterModel) Version() string {
+	return bytesToString(im.C_Version[:])
+}
+
+func (im InverterModel) SerialNumber() string {
+	return bytesToString(im.C_SerialNumber[:])
+}
+
 type MeterModel struct {
 	// Common Block
 	C_SunSpec_DID    uint16
@@ -211,6 +235,26 @@ func (MeterModel) Stride() int {
 	return 174 // 0xae
 }
 
+func (mm MeterModel) Manufacturer() string {
+	return bytesToString(mm.C_Manufacturer[:])
+}
+
+func (mm MeterModel) Model() string {
+	return bytesToString(mm.C_Model[:])
+}
+
+func (mm MeterModel) Option() string {
+	return bytesToString(mm.C_Option[:])
+}
+
+func (mm MeterModel) Version() string {
+	return bytesToString(mm.C_Version[:])
+}
+
+func (mm MeterModel) SerialNumber() string {
+	return bytesToString(mm.C_SerialNumber[:])
+}
+
 type BatteryInfoModel struct {
 	C_Manufacturer  [32]byte
 	C_Model         [32]byte
@@ -268,6 +312,22 @@ var LittleBigEndian littleBigEndian
 
 func (BatteryInfoModel) ModelName() string {
 	return "battery info"
+}
+
+func (bim BatteryInfoModel) Manufacturer() string {
+	return bytesToString(bim.C_Manufacturer[:])
+}
+
+func (bim BatteryInfoModel) Model() string {
+	return bytesToString(bim.C_Model[:])
+}
+
+func (bim BatteryInfoModel) Version() string {
+	return bytesToString(bim.C_Version[:])
+}
+
+func (bim BatteryInfoModel) SerialNumber() string {
+	return bytesToString(bim.C_SerialNumber[:])
 }
 
 func (BatteryInfoModel) NumRegisters() int {
