@@ -384,8 +384,8 @@ func (BatteryModel) Stride() int {
 	return 256 // 0x100
 }
 
-func ReadInverter(mb *modbus.ModbusClient, index int) (InverterModel, error) {
-	return readModel[InverterModel](mb, index)
+func ReadInverter(mb *modbus.ModbusClient) (InverterModel, error) {
+	return readModel[InverterModel](mb, 0)
 }
 
 func ReadMeter(mb *modbus.ModbusClient, index int) (MeterModel, error) {

@@ -19,6 +19,7 @@ import (
 var (
 	inverterAddress      = flag.String("inverter", defaultString("INVERTER_ADDRESS", ""), "Inverter address or IP")
 	inverterPort         = flag.Int("port", defaultInt("INVERTER_PORT", 502), "MODBUS over TCP port")
+	inverterModbusID     = flag.Int("modbus-id", defaultInt("INVERTER_MODBUS_ID", 1), "Inverter MODBUS device ID")
 	pollInterval         = flag.Int("interval", 5, "Polling interval in seconds")
 	configFile           = flag.String("config", "devices.json", "Device config file")
 	clientID             = flag.String("client-id", os.Getenv("MIELE_CLIENT_ID"), "Miele 3rd Party API client ID")
@@ -93,7 +94,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	var inverterIndex = 0
+	var inverterUnitID = *inverterModbusID
 	if len(*inverterAddress) == 0 && len(*solarManagerUsername) == 0 {
 		entries := make(chan *zeroconf.ServiceEntry)
 		log.Println("Searching for inverter on the local network")
@@ -114,11 +115,10 @@ func main() {
 			log.Printf("Found inverter: %s\n", *inverterAddress)
 			for _, txt := range entry.Text {
 				if strings.HasPrefix(txt, "MODBUS_ID=") {
-					inverterIndex, err = strconv.Atoi(strings.TrimPrefix(txt, "MODBUS_ID="))
+					inverterUnitID, err = strconv.Atoi(strings.TrimPrefix(txt, "MODBUS_ID="))
 					if err != nil {
 						log.Fatalf("Invalid MODBUS_ID from mDNS: %s\n", txt)
 					}
-					inverterIndex--
 				}
 			}
 
@@ -161,7 +161,7 @@ func main() {
 	var pp PvProvider
 	if len(*inverterAddress) > 0 {
 		var err error
-		pp, err = newModbusProvider(fmt.Sprintf("%s:%d", *inverterAddress, *inverterPort), inverterIndex)
+		pp, err = newModbusProvider(fmt.Sprintf("%s:%d", *inverterAddress, *inverterPort), inverterUnitID)
 		if err != nil {
 			log.Fatal(err)
 		}
