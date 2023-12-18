@@ -14,10 +14,10 @@ github.com/google/go-querystring v1.1.0 h1:AnCroh3fv4ZBgVIf1Iwtovgjaw/GiKJo8M8yD
 github.com/google/go-querystring v1.1.0/go.mod h1:Kcdr2DB4koayq7X8pmAG4sNG59So17icRSOU623lUBU=
 github.com/grandcat/zeroconf v1.0.0 h1:uHhahLBKqwWBV6WZUDAT71044vwOTL+McW0mBJvo6kE=
 github.com/grandcat/zeroconf v1.0.0/go.mod h1:lTKmG1zh86XyCoUeIHSA4FJMBwCJiQmGfcP2PdzytEs=
-github.com/ingmarstein/miele-go v0.0.0-20231207213347-dcc5922c8d0c h1:Op/h3ysfAd28XKVYiAaIP3ym10RgJa3RAvXh0m2jQeU=
-github.com/ingmarstein/miele-go v0.0.0-20231207213347-dcc5922c8d0c/go.mod h1:lWYohuDQSwRajG2KJUL3o88E29Cu7xfZPMjHI17ATQ8=
-github.com/ingmarstein/solarmanager-go v0.0.0-20230912220539-b4e4582838b9 h1:SZ9SROTiZaZPi90Uw2N+IvcvTo/VR5tjPbksWMDOORM=
-github.com/ingmarstein/solarmanager-go v0.0.0-20230912220539-b4e4582838b9/go.mod h1:0vra3S/tcuXG/Kqw5WoPWQ3nNNBz/C9q6l8PZZwbqRs=
+github.com/ingmarstein/miele-go v0.0.0-20231214222541-2d076062f4f2 h1:zEUi8LPeDJ+UXDmv9WN9vZTgLJJbvw2TGtTcTpopt4c=
+github.com/ingmarstein/miele-go v0.0.0-20231214222541-2d076062f4f2/go.mod h1:lWYohuDQSwRajG2KJUL3o88E29Cu7xfZPMjHI17ATQ8=
+github.com/ingmarstein/solarmanager-go v0.0.0-20231218100925-32bfaa715790 h1:1WeQfXPjLzJPZte2jsbX+bROnQBxj3NBNHKTQqW/gCM=
+github.com/ingmarstein/solarmanager-go v0.0.0-20231218100925-32bfaa715790/go.mod h1:0vra3S/tcuXG/Kqw5WoPWQ3nNNBz/C9q6l8PZZwbqRs=
 github.com/miekg/dns v1.1.27/go.mod h1:KNUDUusw/aVsxyTYZM1oqvCicbwhgbNgztCETuNZ7xM=
 github.com/miekg/dns v1.1.57 h1:Jzi7ApEIzwEPLHWRcafCN9LZSBbqQpxjt/wpgvg7wcM=
 github.com/miekg/dns v1.1.57/go.mod h1:uqRjCRUuEAA6qsOiJvDd+CFo/vW+y5WR6SNmHE55hZk=
@@ -66,8 +66,8 @@ golang.org/x/tools v0.0.0-20180917221912-90fa682c2a6e/go.mod h1:n7NCudcB/nEzxVGm
 golang.org/x/tools v0.0.0-20191119224855-298f0cb1881e/go.mod h1:b+2E5dAYhXwXZwtnZ6UAqBI28+e2cm9otk0dWdXHAEo=
 golang.org/x/tools v0.0.0-20191216052735-49a3e744a425/go.mod h1:TB2adYChydJhpapKDTa4BR/hXlZSLoq2Wpct/0txZ28=
 golang.org/x/tools v0.1.12/go.mod h1:hNGJHUnrk76NpqgfD5Aqm5Crs+Hm0VOH/i9J2+nxYbc=
-golang.org/x/tools v0.16.0 h1:GO788SKMRunPIBCXiQyo2AaexLstOrVhuAL5YwsckQM=
-golang.org/x/tools v0.16.0/go.mod h1:kYVVN6I1mBNoB1OX+noeBjbRk4IUEPa7JJ+TJMEooJ0=
+golang.org/x/tools v0.16.1 h1:TLyB3WofjdOEepBHAU20JdNC1Zbg87elYofWYAY5oZA=
+golang.org/x/tools v0.16.1/go.mod h1:kYVVN6I1mBNoB1OX+noeBjbRk4IUEPa7JJ+TJMEooJ0=
 golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=

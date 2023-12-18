@@ -43,7 +43,7 @@ func (smp *solarManagerProvider) Init() {
 		return
 	}
 
-	log.Printf("Connected to SolarManager gateway %s (%s)", info.Name, info.SmId)
-	log.Printf("SolarManager gateway version: %s", info.Firmware)
-	log.Printf("SolarManager gateway IP: %s", info.Ip)
+	log.Printf("Connected to SolarManager gateway %s (%s)", info.Gateway.Name, info.Gateway.SmId)
+	log.Printf("SolarManager gateway version: %s", info.Gateway.Firmware)
+	log.Printf("SolarManager gateway IP: %s", info.Gateway.Ip)
 }
