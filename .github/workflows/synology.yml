@@ -42,7 +42,7 @@ jobs:
         run: ./.ci/build-package.sh
 
       - name: Archive package
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Synology package
           path: synology/mielesolar-x86_64-latest.spk
