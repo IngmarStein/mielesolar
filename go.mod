@@ -10,7 +10,7 @@ require (
 require (
 	github.com/grandcat/zeroconf v1.0.0
 	github.com/ingmarstein/solarmanager-go v0.0.0-20231221211604-1b8e5332548a
-	github.com/simonvetter/modbus v1.6.0
+	github.com/simonvetter/modbus v1.6.1
 )
 
 require (
