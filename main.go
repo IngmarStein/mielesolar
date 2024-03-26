@@ -156,7 +156,10 @@ func main() {
 		}
 	}
 
-	mieleClient := miele.NewClientWithAuth(*clientID, *clientSecret, *vg, *username, *password)
+	mieleClient, err := miele.NewClientWithAuth(*clientID, *clientSecret, *vg, *username, *password)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	var pp PvProvider
 	if len(*inverterAddress) > 0 {
